@@ -1,0 +1,10 @@
+first = "Dr."
+second = "Ken"
+
+fullname = first + "-" + second + "(Kendrick Kang-Joh Jeong)"
+
+if (fullname == "Dr.-Ken"){
+	great_dr = "Yes";
+} else {
+	great_dr = "No";
+}

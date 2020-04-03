@@ -1,0 +1,37 @@
+# https://github.com/molpopgen/devnotes/wiki/Rcpp-and-compiler-flags
+# https://stackoverflow.com/questions/43597632/understanding-the-contents-of-the-makevars-file-in-r-macros-variables-r-ma
+
+CXX_STD=CXX11
+PKG_CXXFLAGS=-Ilibsailr  # CPP means c preprocessor, CXX means cpp compiler.
+
+UNAME=$(shell uname)
+ifeq (,$(findstring Darwin,$(UNAME))$(findstring darwin,$(UNAME)))
+  # Not Darwin
+  PKG_LIBS = $(LDFLAGS) -Llibsailr -lsailr @add_onigmo_lib_path@ -l:libonigmo.a 
+else
+  # Darwin
+  PKG_LIBS = $(LDFLAGS) -Llibsailr -lsailr @add_onigmo_lib_path@ -lonigmo 
+endif
+
+# Note: -lxxx looks up for libraries in an order of libxxx.so and libxxx.a
+# Note: -l:libyyy.a directly looks up for the library with the filename of libyyy.a
+# https://stackoverflow.com/questions/6578484/telling-gcc-directly-to-link-a-library-statically
+# clang (mainly used on Darwin OS) does not support -l:<filename> syntax, so at now -l<libname> is used.
+
+
+# compile self-contained subdirectory
+# http://www.hep.by/gnu/r-patched/r-exts/R-exts_14.html#SEC14
+# https://stackoverflow.com/questions/17133550/building-shared-libraries-in-subdirectories
+
+
+.PHONY: all # libsailr/libsailr.a
+
+all: $(SHLIB)
+$(SHLIB): libsailr/libsailr.a 
+
+libsailr/libsailr.a:
+	@echo "compiling libsailr engine."
+	@echo $$PATH
+	@echo "Makevars.in"
+	$(MAKE) build --directory libsailr @add_onigmo_include_path@ ## CC_USER_DEFINES="-DDEBUG"
+
