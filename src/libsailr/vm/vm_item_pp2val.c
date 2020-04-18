@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include "simple_re.h"
 #include "common_string.h"
 #include "vm_item_pp2val.h"
@@ -34,8 +35,8 @@ stack_item_pp2value(stack_item* item)
         case NULL_ITEM:
             null_record = (ptr_record*) item->p_record;
             if(null_record->type == PTR_NULL){
-{}//                printf("ERROR: The variable, %s, should not be null. ", null_record->key );
-{}//                printf("Variable of null value cannot be used for calculation. \n");
+                Rprintf("ERROR: The variable, %s, should not be null. ", null_record->key );
+                Rprintf("Variable of null value cannot be used for calculation. \n");
             }else{
                 if(null_record->type == PTR_INT){
 			        item->type = IVAL;
@@ -62,7 +63,7 @@ stack_item_pp2value(stack_item* item)
 					item->p_record = null_record;
 					DEBUG_PRINT("NULL_ITEM is converted to PP_REXP.\n");
                 }else{
-{}//                    printf("ERROR: NULL_ITEM points to a ptr_record with unintended type: %s", null_record->key );
+                    Rprintf("ERROR: NULL_ITEM points to a ptr_record with unintended type: %s", null_record->key );
                 }
             }
 			break;

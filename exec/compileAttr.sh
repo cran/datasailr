@@ -1,5 +1,5 @@
-#!/bin/bash
-
+#!/bin/sh
+#
 # Note
 # This script is discussed in https://github.com/RcppCore/Rcpp/issues/136
 # To preare src/RcppExports.cpp and R/RcppExports.R, you need to run Rcpp::compileAttributes at the package root directory, and this script does this work.
@@ -13,6 +13,6 @@
 #   + This alsway runs as long as I use option --preclean for R CMD INSTALL.
 #   +
 # 
-
-Rscript -e 'library(Rcpp); compileAttributes(".")'
-
+#
+#Rscript -e 'library(Rcpp); compileAttributes(".")'
+#

@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include "simple_date.h"
 #include "cpp_date.hpp"
 #include <string.h>
@@ -45,7 +46,7 @@ simple_date_ym_weekday_nth( int int_y, unsigned int int_m, const char* c_wd , un
   }else if( strcmp( str, "SAT" ) == 0 ){
     int_wd = 6;
   }else{
-{}//     printf("ERROR: Specified symbol is not valid for weekday. %s\n", str );
+     Rprintf("ERROR: Specified symbol is not valid for weekday. %s\n", str );
   }
   return cpp_date_ym_weekday_nth( int_y, int_m, int_wd, int_nth); 
 }

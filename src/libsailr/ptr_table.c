@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include "ptr_table.h"
 #include <stdio.h>
 #include <string.h>
@@ -16,7 +17,8 @@ ptr_table_init (){
 	new_ptr_table_info = (ptr_table_info *) malloc(sizeof(ptr_table_info));
 	new_ptr_table_info->str_counter = 0;
 	new_ptr_table_info->rexp_counter = 0;
-	new_ptr_table_info->null_updated = 0b0000 ;
+//	new_ptr_table_info->null_updated = 0b0000 ; // GNU extension
+	new_ptr_table_info->null_updated = 0x0 ;
 	new_ptr_record->address = new_ptr_table_info;
 	new_ptr_record->type = PTR_INFO;
 	new_ptr_record->gc = GC_YES;
@@ -31,31 +33,34 @@ ptr_table_init (){
 ptr_record*
 ptr_table_add (ptr_table** table, const char* key, void** address, PtrType type, GCReq gc )
 {
-	ptr_record * result = NULL;
-	result = ptr_table_find (table, key);
-	if(result == NULL){
-		// Create new key/value.
-		ptr_record* new_ptr_record;
-		new_ptr_record = (ptr_record *)malloc(sizeof(ptr_record));
-		strncpy( new_ptr_record->key , key, MAX_KEY_LEN ) ;
+    ptr_record * result = NULL;
+    result = ptr_table_find (table, key);
+    if(result == NULL){
+        // Create new key/value.
+        ptr_record* new_ptr_record;
+        new_ptr_record = (ptr_record *)malloc(sizeof(ptr_record));
+        strncpy( new_ptr_record->key , key, MAX_KEY_LEN ) ;
+        new_ptr_record->key[ MAX_KEY_LEN - 1] = '\0';
         if(type != PTR_NULL){
-    		new_ptr_record->address = *address;
+            new_ptr_record->address = *address;
         }else{
             new_ptr_record->address = NULL;
         }
-		new_ptr_record->type = type;
-		new_ptr_record->gc = gc ; 
-		// printf("%s\t %p\t \n", new_ptr_record->key, new_ptr_record->address);
-		ptr_table_insert( table, new_ptr_record );
-		// printf("%s\t %p\t \n", table->key, table->address);
-		result = new_ptr_record;
-	} else {
+        new_ptr_record->type = type;
+        new_ptr_record->gc = gc ;
+        // If necessary, extra address and its related information should be updated.
+        new_ptr_record->ex_addr = NULL;
+        new_ptr_record->ex_type = PTR_NULL;
+        new_ptr_record->ex_gc = GC_NO ; 
+        // Insert new ptr_record on ptr_table
+        ptr_table_insert( table, new_ptr_record );
+        result = new_ptr_record;
+    } else {
         if(type != PTR_NULL){
-    		ptr_record_update( result, *address, type, gc );
+            ptr_record_update( result, *address, type, gc );
         }else{
-    		ptr_record_update( result, NULL, type, gc );
+            ptr_record_update( result, NULL, type, gc );
         }
-
 	}
 	return result;
 }
@@ -190,6 +195,7 @@ ptr_table_create_anonym_string(ptr_table** table, string_object** strptr)
 	new_key = create_new_str_key(table);
 	ptr_record* new_ptr_record;
 	new_ptr_record = ptr_table_add(table, new_key, (void**)strptr, PTR_STR, GC_YES);
+	free(new_key);
 	return new_ptr_record ;
 }
 
@@ -207,11 +213,19 @@ ptr_record_reset_rexp(ptr_record* pr)
 }
 
 ptr_record*
-ptr_table_create_string(ptr_table** table, const char* key, string_object** strptr)
+ptr_table_create_string_from_cstring(ptr_table** table, const char* key, const char* str)
 {
 	ptr_record* new_ptr_record;
-	new_ptr_record = ptr_table_add(table, key, (void**)strptr, PTR_STR, GC_NO);
+	string_object* p_str = string_new(str);
+	new_ptr_record = ptr_table_add(table, key, (void**) &p_str, PTR_STR, GC_YES);
 	return new_ptr_record ;
+
+//	ptr_record* new_ptr_record;
+//	string_object** pp_str = malloc(sizeof(string_object*));
+//	pp_str* = string_new(str);
+//	new_ptr_record = ptr_table_add(table, key, (void**) pp_str, PTR_STR, GC_YES);
+//   free(pp_str);
+//	return new_ptr_record ;
 }
 
 // (Deprecated)
@@ -227,13 +241,17 @@ int
 ptr_table_update_string(ptr_table** table, const char* key, string_object** strptr)
 {
     ptr_record* to_be_updated = ptr_table_find(table, key);
-    if(to_be_updated->type != PTR_STR)
-{}//        printf("ERROR: Record with non-string is trying to be updated with string.");
+    if(to_be_updated->type != PTR_STR){
+        Rprintf("ERROR: Record with non-string is trying to be updated with string.");
+        return -1;
+    }
 
-    if(to_be_updated->gc == GC_YES)
+    if(to_be_updated->gc == GC_YES){
         free(to_be_updated->address);
+    }
     
     to_be_updated->address = *strptr;
+    return 1;
 }
 
 int
@@ -241,6 +259,7 @@ ptr_record_update_string(ptr_record* pr , string_object** pp_str, GCReq gc)
 {
 	pr->address = *pp_str;
 	pr->gc = gc;
+    return 1;
 }
 
 ptr_record*
@@ -252,6 +271,7 @@ ptr_table_create_anonym_rexp(ptr_table** table, const char* pattern, const char*
 	new_re = simple_re_compile( pattern, enc );
 	ptr_record* new_ptr_record;
 	new_ptr_record = ptr_table_add(table, new_key, (void**) &new_re, PTR_REXP, GC_YES);
+	free(new_key);
 	return new_ptr_record ;
 }
 
@@ -273,12 +293,12 @@ ptr_table_del_record(ptr_table** table, const char* key)
 		ptr_record_free(to_be_deleted);  /* Free structure and momory pointed by address */
 		return 1;
 	} else {
-{}//		printf("Cannot find record to be deleted.\n");
-		return 0;
+		Rprintf("Cannot find record to be deleted.\n");
+		return -1;
 	}
 }
 
-int
+void
 ptr_record_free_gc_required_memory(ptr_record* pr)
 {
 //	ptr_record_show(pr);
@@ -305,16 +325,39 @@ ptr_record_free_gc_required_memory(ptr_record* pr)
 				break;
 		}
 		pr->address = NULL;
+	}	
+	if(pr->ex_gc == GC_YES){
+		switch( pr->ex_type ){	
+			case PTR_INT:
+			case PTR_DBL:
+				free(pr->ex_addr);
+				break;
+			case PTR_STR:
+				string_free((string_object*)pr->ex_addr);
+				break;
+			case PTR_REXP:
+				simple_re_free((simple_re*)pr->ex_addr);
+				break;
+			case PTR_NULL:
+				break;
+			case PTR_INFO:
+				free((ptr_table_info*)pr->ex_addr);
+				break;
+			default:
+				free(pr->ex_addr);
+				break;
+		}
+		pr->ex_addr = NULL;
 	}
 }
 
-int
+void
 ptr_record_free_struct(ptr_record* pr)
 {
 	free(pr);
 }
 
-int
+void
 ptr_record_free(ptr_record* pr)
 {
 	ptr_record_free_gc_required_memory(pr);  /* Free memory pointed by address. */
@@ -360,7 +403,7 @@ ptr_record_next(ptr_record* pr){
 	return pr->hh.next;
 }
 
-int
+void
 ptr_table_del_records_except(ptr_table** table, const char** keys, int key_num )
 {
 	/* keys is array of pointers to chars. */
@@ -373,7 +416,7 @@ ptr_table_del_records_except(ptr_table** table, const char** keys, int key_num )
 
 	for( idx = 0; idx < key_num ; ++idx ){
 		key_name = keys[idx];
-{}//		printf("* %s\n", key_name);
+		Rprintf("* %s\n", key_name);
 	}
 
 	for(current_record = *table; current_record != NULL; current_record=temp_record) {
@@ -396,7 +439,7 @@ ptr_table_del_records_except(ptr_table** table, const char** keys, int key_num )
 	}
 }
 
-int
+void
 ptr_table_del_all(ptr_table** table)
 {
   ptr_record *current_record;
@@ -422,32 +465,32 @@ void
 ptr_record_show(ptr_record* pr)
 {
 		if(pr->type == PTR_INT){
-/*        	printf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%d\t (EXTR_ADR:%p\t TYPE:%d\t GC:%d\t VAL:%lf) \n", 
+        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%d\t (EXTR_ADR:%p\t TYPE:%d\t GC:%d\t VAL:%lf) \n", 
 			pr->key, pr->address, pr->type, pr->gc, *((int*)(pr->address)),
-			pr->ex_addr, pr->ex_type, pr->ex_gc, *((double*)(pr->ex_addr)) );*/
+			pr->ex_addr, pr->ex_type, pr->ex_gc, *((double*)(pr->ex_addr)) );
 		}else if(pr->type == PTR_DBL){
-/*        	printf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%lf\t (EXTR_ADR:%p\t TYPE:%d\t GC:%d\t VAL:%d)\n", 
+        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%lf\t (EXTR_ADR:%p\t TYPE:%d\t GC:%d\t VAL:%d)\n", 
 			pr->key, pr->address, pr->type, pr->gc, *((double*)(pr->address)),
-			pr->ex_addr, pr->ex_type, pr->ex_gc, *((int*)(pr->ex_addr)));*/
+			pr->ex_addr, pr->ex_type, pr->ex_gc, *((int*)(pr->ex_addr)));
 		}else if(pr->type == PTR_STR){
-/*        	printf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%s\t (EXTR_ADR:%p (Not used for string))\n", 
+        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%s\t (EXTR_ADR:%p (Not used for string))\n", 
 			pr->key, pr->address, pr->type, pr->gc, string_read((string_object*)(pr->address)),
-			pr->ex_addr );*/
+			pr->ex_addr );
 		}else if(pr->type == PTR_REXP){
-/*        	printf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%s\t (EXTR_ADR:%p)\n", 
+        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%s\t (EXTR_ADR:%p)\n", 
 			pr->key, pr->address, pr->type, pr->gc, simple_re_read_pattern((simple_re*)(pr->address)),
-			pr->ex_addr );*/
+			pr->ex_addr );
 		}else if(pr->type == PTR_NULL){
-/*        	printf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t (EXTR_ADR:%p) \n", 
-			pr->key, pr->address, pr->type, pr->gc, pr->ex_addr);*/
+        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t (EXTR_ADR:%p) \n", 
+			pr->key, pr->address, pr->type, pr->gc, pr->ex_addr);
 		}else if(pr->type == PTR_INFO){
-/*        	printf("KEY:%s\t ADR:%p\t TYPE:%s\t GC:%d\t (EXTR_ADR:%p) ", 
-			pr->key, pr->address, "INFO" , pr->gc, pr->ex_addr);*/
+        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%s\t GC:%d\t (EXTR_ADR:%p) ", 
+			pr->key, pr->address, "INFO" , pr->gc, pr->ex_addr);
 			ptr_table_info* pti = (ptr_table_info*) (pr->address);
-{}//			printf("\t str_counter %d, rexp_counter %d, null_updated %d \n", pti->str_counter, pti->rexp_counter, pti->null_updated);
+			Rprintf("\t str_counter %d, rexp_counter %d, null_updated %d \n", pti->str_counter, pti->rexp_counter, pti->null_updated);
 		}else{
-/*        	printf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t (EXTR_ADR:%p) \n", 
-			pr->key, pr->address, pr->type, pr->gc,	pr->ex_addr);*/
+        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t (EXTR_ADR:%p) \n", 
+			pr->key, pr->address, pr->type, pr->gc,	pr->ex_addr);
 		}
 }
 
@@ -466,7 +509,8 @@ ptr_record_obtain_table(ptr_record* pr)
 	if( ptr_table_points_to_header(table) ){
 		return *table;
 	}else{
-{}//		printf("ERROR: The function cannot find header of UTHASH.\n");
+		Rprintf("ERROR: The function cannot find header of UTHASH.\n");
+		return NULL;
 	}
 }
 
@@ -479,7 +523,7 @@ ptr_table_info_set_null_updated(ptr_table** table, int updated_value)
 		((ptr_table_info*) (pr->address))->null_updated = updated_value;
 		return 1;
 	}else{
-{}//		printf("ERROR: The pointer passed is not pointing to valid ptr_table.");
+		Rprintf("ERROR: The pointer passed is not pointing to valid ptr_table.");
 		return 0;
 	}
 }
@@ -495,14 +539,17 @@ ptr_table_info_change_null_updated_by_type(ptr_table** table, PtrType type)
 		current_null_updated = ((ptr_table_info*) (pr->address))->null_updated ;
 		
 		if( PTR_INT <= type && type <= PTR_REXP ){
-			bitmask = ( 0b0001 << ((int)type));
+//			bitmask = ( 0b0001 << ((int)type));  // GNU extension
+			bitmask = ( 0x1 << ((int)type));
+			DEBUG_PRINT( "new type is %d, new bitmask is %d \n", type, bitmask);
+			DEBUG_PRINT( "current null_update value is %d, new value is %d \n", current_null_updated, (current_null_updated | bitmask));
 		}else{
-{}//			printf("ERROR: Null may be converted to unintentional type on ptr_table." );
+			Rprintf("ERROR: Null may be converted to unintentional type on ptr_table." );
 		}
 		((ptr_table_info*) (pr->address))->null_updated = current_null_updated | bitmask ;
 		return 1;
 	}else{
-{}//		printf("ERROR: The pointer passed is not pointing to valid ptr_table.");
+		Rprintf("ERROR: The pointer passed is not pointing to valid ptr_table.");
 		return 0;
 	}
 }
@@ -516,7 +563,7 @@ ptr_table_info_get_null_updated(ptr_table** table)
 		ptr_table_info* pti = (ptr_table_info*) (pr->address);
 		return pti->null_updated;
 	}else{
-{}//		printf("ERROR: The pointer passed is not pointing to valid ptr_table. This branch works, but should never executed. ");
+		Rprintf("ERROR: The pointer passed is not pointing to valid ptr_table. This branch works, but should never executed. ");
 		return 0; 
 	}
 }
@@ -527,10 +574,11 @@ ptr_table_info_reset_null_updated(ptr_table** table)
 	ptr_record* pr;
 	if(ptr_table_points_to_header(table)){
 		pr = (ptr_record*) *table;
-		((ptr_table_info*) (pr->address))->null_updated = 0b0000 ;
+//		((ptr_table_info*) (pr->address))->null_updated = 0b0000 ;  // GNU extension
+		((ptr_table_info*) (pr->address))->null_updated = 0x0 ;
 		return 1;
 	}else{
-{}//		printf("ERROR: The pointer passed is not pointing to valid ptr_table.");
+		Rprintf("ERROR: The pointer passed is not pointing to valid ptr_table.");
 		return 0;
 	}
 }
@@ -590,22 +638,22 @@ int main(int argc, char** argv){
 	// printf("table\t %p \n");
 	
 	ptr_table_add(&table, ind1->name, (void**)&ind1, PTR_OBJ, GC_YES);
-{}//	printf("toshi\t %p \n", ind1);
+	Rprintf("toshi\t %p \n", ind1);
 	// printf("table\t %p \n");
 
 	ptr_table_add_anonym_str(&table, &hello);
-{}//	printf("hello\t %p \n", hello);
+	Rprintf("hello\t %p \n", hello);
 	// printf("table\t %p \n");
 
-{}//	printf("\n");
+	Rprintf("\n");
 	ptr_table_show_all(&table);
 
 	ptr_table_del_record(&table, "toshi");
-{}//	printf("\n");
+	Rprintf("\n");
 	ptr_table_show_all(&table);
 
 	ptr_table_del_record(&table, "STR000000000001");
-{}//	printf("\n");
+	Rprintf("\n");
 	ptr_table_show_all(&table);	
 }
 */

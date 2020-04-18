@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -36,18 +37,26 @@ new_vm_inst_push_dval( double dval )
 vm_inst*
 new_vm_inst_push_pp_ival( char* ptr_key )
 {
-//	vm_inst* temp_inst = new_vm_inst_command( VM_PUSH_PP_IVAL );
     vm_inst* temp_inst = new_vm_inst_command( VM_PUSH_PP_NUM );
-	temp_inst->ptr_key = ptr_key;
+
+	int length = strlen(ptr_key);
+	char* key_copied = (char*) malloc(length*sizeof(char)+1);
+	strcpy(key_copied, ptr_key);
+	temp_inst->ptr_key = key_copied;
+
 	return temp_inst;
 }
 
 vm_inst*
 new_vm_inst_push_pp_dval( char* ptr_key )
 {
-//	vm_inst* temp_inst = new_vm_inst_command( VM_PUSH_PP_DVAL );
     vm_inst* temp_inst = new_vm_inst_command( VM_PUSH_PP_NUM );
-	temp_inst->ptr_key = ptr_key;
+
+	int length = strlen(ptr_key);
+	char* key_copied = (char*) malloc(length*sizeof(char)+1);
+	strcpy(key_copied, ptr_key);
+	temp_inst->ptr_key = key_copied;
+
 	return temp_inst;
 }
 
@@ -55,7 +64,12 @@ vm_inst*
 new_vm_inst_push_pp_str( char* ptr_key )
 {
 	vm_inst* temp_inst = new_vm_inst_command( VM_PUSH_PP_STR );
-	temp_inst->ptr_key = ptr_key;
+
+	int length = strlen(ptr_key);
+	char* key_copied = (char*) malloc(length*sizeof(char)+1);
+	strcpy(key_copied, ptr_key);
+	temp_inst->ptr_key = key_copied;
+
 	return temp_inst;
 }
 
@@ -63,7 +77,12 @@ vm_inst*
 new_vm_inst_push_pp_rexp( char* ptr_key )
 {
 	vm_inst* temp_inst = new_vm_inst_command( VM_PUSH_PP_REXP );
-	temp_inst->ptr_key = ptr_key;
+
+	int length = strlen(ptr_key);
+	char* key_copied = (char*) malloc(length*sizeof(char)+1);
+	strcpy(key_copied, ptr_key);
+	temp_inst->ptr_key = key_copied;
+
 	return temp_inst;
 }
 
@@ -71,7 +90,12 @@ vm_inst*
 new_vm_inst_push_null( char* ptr_key )
 {
 	vm_inst* temp_inst = new_vm_inst_command( VM_PUSH_NULL );
-	temp_inst->ptr_key = ptr_key;
+
+	int length = strlen(ptr_key);
+	char* key_copied = (char*) malloc(length*sizeof(char)+1);
+	strcpy(key_copied, ptr_key);
+	temp_inst->ptr_key = key_copied;
+
 	return temp_inst;
 }
 
@@ -79,7 +103,12 @@ vm_inst*
 new_vm_inst_label( char* label )
 {
 	vm_inst* temp_inst = new_vm_inst_command( VM_LABEL );
-	temp_inst->label = label;
+
+	int length = strlen(label);
+	char* label_copied = (char*) malloc(length*sizeof(char)+1);
+	strcpy(label_copied, label);
+	temp_inst->label = label_copied;
+
 	return temp_inst;
 }
 
@@ -88,7 +117,12 @@ vm_inst*
 new_vm_inst_fjmp( char* label )
 {
 	vm_inst* temp_inst = new_vm_inst_command( VM_FJMP );
-	temp_inst->label = label;
+
+	int length = strlen(label);
+	char* label_copied = (char*) malloc(length*sizeof(char)+1);
+	strcpy(label_copied, label);
+	temp_inst->label = label_copied;
+
 	return temp_inst;
 }
 
@@ -97,7 +131,12 @@ vm_inst*
 new_vm_inst_jmp( char* label )
 {
 	vm_inst* temp_inst = new_vm_inst_command( VM_JMP );
-	temp_inst->label = label;
+
+	int length = strlen(label);
+	char* label_copied = (char*) malloc(length*sizeof(char)+1);
+	strcpy(label_copied, label);
+	temp_inst->label = label_copied;
+
 	return temp_inst;
 }
 
@@ -136,7 +175,7 @@ vm_inst_list_get(vm_inst_list* list , int zero_indexed)
 		}
 	}while(curr_inst->next != NULL);
 
-{}//	printf("index is out of bound. The returned inst is the last one.\n");
+	Rprintf("index is out of bound. The returned inst is the last one.\n");
 	return curr_inst;
 }
 
@@ -186,9 +225,9 @@ vm_inst_list*
 vm_inst_list_insert( vm_inst_list* list1, int idx, vm_inst_list* list2)
 {
 	if(idx <= 0 )
-{}//		printf("idx should be larger than zero.\n");
+		Rprintf("idx should be larger than zero.\n");
 	if(idx > (vm_inst_list_size(list1) - 1) )
-{}//		printf("idx is out of bound.\n");
+		Rprintf("idx is out of bound.\n");
 
 	vm_inst* list1_inst_before_idx = vm_inst_list_get(list1, idx - 1);
 	vm_inst* list1_inst_at_idx = vm_inst_list_get(list1, idx );
@@ -211,10 +250,10 @@ vm_inst_list_free( vm_inst_list* inst_list )
 	vm_inst* curr_inst = inst_list;
 	vm_inst* next_inst = curr_inst->next;
 	vm_inst_free( curr_inst );
-{}//	printf("Free vm_inst \n");
 	if(next_inst != NULL){
 		vm_inst_list_free(next_inst);
 	}
+	return 1;
 }
 
 vm_inst*
@@ -251,9 +290,9 @@ main(int argc, char** argv)
 	cat_insts( list, new_vm_inst_command(VM_STO));
 	cat_insts( list, new_vm_inst_command(VM_END));
 
-{}//	printf("---Show all---\n");
+	Rprintf("---Show all---\n");
 	vm_inst_list_show_all( list );
-{}//	printf("---Free all---\n");
+	Rprintf("---Free all---\n");
 	vm_inst_list_free( list );
 }
 */

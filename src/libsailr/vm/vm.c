@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include "ptr_table.h"
@@ -51,7 +52,7 @@ vm_exec_code( vm_inst* code , int num_insts , ptr_table* table , vm_stack* vmsta
 				vm_stack_clean_and_pop( vmstack , 1 ) ;
 
 			} else {
-{}//				printf("ERROR: Top item of the current stack is not boolean... \n");
+				Rprintf("ERROR: Top item of the current stack is not boolean... \n");
 			}
 		}else {
 			DEBUG_PRINT("----- VM INSTRUCTION ----- \n");
@@ -59,6 +60,7 @@ vm_exec_code( vm_inst* code , int num_insts , ptr_table* table , vm_stack* vmsta
 			vm_run_inst(inst, table , vmstack);
 		}
 	}
+	return 1;
 }
 
 int
@@ -73,11 +75,11 @@ vm_run_inst (vm_inst* inst, ptr_table* table, vm_stack* vmstack )
 		vm_stack_push_dval(vmstack, inst->dval);
 		break;
 	case VM_PUSH_PP_IVAL:
-{}//        printf("ERROR: This instruction is not used. Use VM_PUSH_PP_NUM.");
+        Rprintf("ERROR: This instruction is not used. Use VM_PUSH_PP_NUM.");
 		vm_stack_push_pp_ival(vmstack, &table, inst->ptr_key);
 		break;
 	case VM_PUSH_PP_DVAL:
-{}//        printf("ERROR: This instruction is not used. Use VM_PUSH_PP_NUM.");
+        Rprintf("ERROR: This instruction is not used. Use VM_PUSH_PP_NUM.");
 		vm_stack_push_pp_dval(vmstack, &table, inst->ptr_key);
 		break;
 	case VM_PUSH_PP_NUM:
@@ -97,7 +99,7 @@ vm_run_inst (vm_inst* inst, ptr_table* table, vm_stack* vmstack )
 		break;
 	case VM_FJMP:
 	case VM_JMP:
-{}//		printf("ERROR: This code should never be run. ");
+		Rprintf("ERROR: This code should never be run. ");
 		break;
 	case VM_END:
 		vm_stack_end(vmstack);
@@ -166,7 +168,7 @@ vm_run_inst (vm_inst* inst, ptr_table* table, vm_stack* vmstack )
 		// Do nothing.
 		break;
 	default:
-{}//		printf("ERROR: undefined VM command specified. \n");
+		Rprintf("ERROR: undefined VM command specified. \n");
 		break;
 	}
 
@@ -193,15 +195,15 @@ int main(int args, char** argv){
 	int* address_for_x = (int *)malloc(sizeof(int));
 	*address_for_x = 0;
 	ptr_table_add( &table, "x", (void**) &address_for_x, PTR_INT, GC_NO);
-{}//	printf("---- Show ptr_table ----\n");
+	Rprintf("---- Show ptr_table ----\n");
 	ptr_table_show_all(&table);
-{}//	printf("\n");
+	Rprintf("\n");
 
 	vm_exec_code(vm_code1, sizeof(vm_code1)/sizeof(vm_code1[0]), table , vmstack);
-{}//	printf("\n");
-{}//	printf("---- Show ptr_table ----\n");
+	Rprintf("\n");
+	Rprintf("---- Show ptr_table ----\n");
 	ptr_table_show_all(&table);
-{}//	printf("\n");
+	Rprintf("\n");
 
 	free(address_for_x);
 	return 0;

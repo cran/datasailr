@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 /*
 Copyright (c) 2003-2018, Troy D. Hanson     http://troydhanson.github.com/uthash/
 All rights reserved.

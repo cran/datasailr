@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 
 #include "c_func.h"
 #include "c_func_helper.h"
@@ -21,28 +22,31 @@
 // ptr_record* ptr_table_create_anonym_string(ptr_table** table, string_object** strptr);
 
 #define ASSIGN_INT_VALUE( VAR , ARG_PTR , ERROR_MSG ) \
-({ \
+do { \
 	if(arg_item_confirm_int( ARG_PTR )){ \
 		VAR = arg_item_int_value( ARG_PTR ); \
 	}else{ \
+		Rprintf( ERROR_MSG ); \
 	} \
-})
+} while (0)
 
 #define ASSIGN_DOUBLE_VALUE( VAR , ARG_PTR , ERROR_MSG ) \
-({ \
+do { \
 	if(arg_item_confirm_double( ARG_PTR )){ \
 		VAR = arg_item_double_value( ARG_PTR ); \
 	}else{ \
+		Rprintf( ERROR_MSG ); \
 	} \
-})
+} while (0)
 
 #define ASSIGN_STRING_PTR( VAR , ARG_PTR , ERROR_MSG ) \
-({ \
+do { \
 	if(arg_item_confirm_string( ARG_PTR )){ \
 		VAR = arg_item_string_obj( ARG_PTR ); \
 	}else{ \
+		Rprintf( ERROR_MSG ); \
 	} \
-})
+} while (0)
 
 
 // This fucntion is used by print() and str_concat(), to concatenate multiple objects as string.
@@ -59,33 +63,47 @@ append_arg_list_as_string( string_object* new_str, arg_list* arglist)
   bool tmp_bool;
 
   for( argitem = arglist ; argitem != NULL; arg_item_next(&argitem) ){
+//	printf("ARG ITEM TYPE: %c \n", arg_item_interpret_type(argitem));
+
 	switch(arg_item_interpret_type(argitem)){ 
     case 's': // string
       ASSIGN_STRING_PTR( tmp_str , argitem , "ERROR: This should be string.\n" );
+//	  printf("%s\n", string_read(tmp_str));
       string_append_string(new_str, tmp_str);
     break;
     case 'i': // int
       ASSIGN_INT_VALUE( tmp_int , argitem , "ERROR: This should be int.\n" );
-      string_append_cstring(new_str, string_int2cstr(tmp_int));
+//	  printf("%d\n", tmp_int);
+	  tmp_str = string_new_int2str(tmp_int);
+      string_append_string(new_str, tmp_str);
+	  string_free(tmp_str);
     break;
     case 'd': // double
       ASSIGN_DOUBLE_VALUE( tmp_double , argitem , "ERROR: This should be int.\n" );
-      string_append_cstring(new_str, string_double2cstr(tmp_double));      
+//	  printf("%f\n", tmp_double);
+	  tmp_str = string_new_double2str(tmp_double);
+      string_append_string(new_str, tmp_str);
+	  string_free(tmp_str);
     break;
     case 'r': // regexp
       tmp_re = arg_item_rexp_obj( argitem );
+//	  printf("%s\n", simple_re_read_pattern(tmp_re));
       string_append_cstring(new_str, simple_re_read_pattern(tmp_re));      
     break;
     case 'b': // boolan
       tmp_bool = arg_item_bool_value( argitem );
       tmp_int = tmp_bool ? 1 : 0 ;
-      string_append_cstring(new_str, string_int2cstr(tmp_int));
+//	  printf("%d\n", tmp_int);
+	  tmp_str = string_new_int2str(tmp_int);
+      string_append_string(new_str, tmp_str);
+	  string_free(tmp_str);
     break;
     case 'n': // null
       // Nothing to be added.
+//	  printf("null\n");
     break;
     default:  // shoud never enter this branch
-{}//      printf("ERROR: This should never be executed (sailr_func_print()).\n");      
+      Rprintf("ERROR: This should never be executed (sailr_func_print()).\n");      
     break;
     }
   }
@@ -100,7 +118,9 @@ sailr_func_print(vm_stack* vmstack, int num_args)
 
   append_arg_list_as_string( new_str, arglist );
 
-{}//  printf("%s", string_read(new_str));
+  Rprintf("%s", string_read(new_str));
+
+  string_free(new_str);
 
   arg_list_finalize( vmstack, num_args, arglist ); // Move sp pointer & deallocate arg_list* 
   return 1;
@@ -117,13 +137,13 @@ sailr_func_num_to_str(vm_stack* vmstack, int num_args , ptr_table** table)
   string_object** pp_str = (string_object**) malloc(sizeof(string_object*));
 
   if(arg_item_confirm_int(argitem)){
-    p_str = (string_object*) string_int2str( arg_item_int_value(argitem) );
+    p_str = (string_object*) string_new_int2str( arg_item_int_value(argitem) );
     *pp_str = p_str;  // Never do "pp_str = &p_str;"
   }else if(arg_item_confirm_double(argitem)){
-    p_str = string_double2str( arg_item_double_value(argitem) );
+    p_str = string_new_double2str( arg_item_double_value(argitem) );
     *pp_str = p_str;  // Never do "pp_str = &p_str;"
   }else{
-{}//    printf("ERROR: For argument, number shouble be specified.\n");
+    Rprintf("ERROR: For argument, number shouble be specified.\n");
   }
 
   arg_list_finalize( vmstack, num_args, arglist ); // Move sp pointer & deallocate arg_list* 
@@ -166,19 +186,19 @@ sailr_func_str_func_ptr (vm_stack* vmstack, int num_args , ptr_table** table , s
 int
 sailr_func_str_strip( vm_stack* vmstack, int num_args, ptr_table** table )
 {
-  sailr_func_str_func_ptr(vmstack, num_args, table, &string_strip);
+  return sailr_func_str_func_ptr(vmstack, num_args, table, &string_strip);
 }
 
 int
 sailr_func_str_lstrip( vm_stack* vmstack, int num_args, ptr_table** table )
 {
-  sailr_func_str_func_ptr(vmstack, num_args, table, &string_lstrip); 
+  return sailr_func_str_func_ptr(vmstack, num_args, table, &string_lstrip); 
 }
  
 int
 sailr_func_str_rstrip( vm_stack* vmstack, int num_args, ptr_table** table )
 {
-  sailr_func_str_func_ptr(vmstack, num_args, table, &string_rstrip);
+  return sailr_func_str_func_ptr(vmstack, num_args, table, &string_rstrip);
 }
 
 int
@@ -285,7 +305,7 @@ sailr_func_str_to_num ( vm_stack* vmstack, int num_args )
   if(arg_item_confirm_string(argitem)){
     // The argument should be string.
   }else{
-{}//    printf("ERROR: For argument, string shouble be specified.\n");
+    Rprintf("ERROR: For argument, string shouble be specified.\n");
   }
 
   int ival;
@@ -308,6 +328,7 @@ sailr_func_str_to_num ( vm_stack* vmstack, int num_args )
   } else if(ival_or_dval == 'i'){
     vm_stack_push_ival( vmstack , ival);
   }
+  return 1;
 }
 
 int
@@ -321,7 +342,7 @@ sailr_func_rexp_matched( vm_stack* vmstack, int num_args , ptr_table** table )
 
 #ifdef DEBUG
   simple_re* ptr_last_rexp_obj = *ptr_rexp_last_matched;
-{}//  printf("Just before back referencing the last regexp match information: Address to last_rexp object %p\n",  ptr_last_rexp_obj);
+  Rprintf("Just before back referencing the last regexp match information: Address to last_rexp object %p\n",  ptr_last_rexp_obj);
 #endif
 
   int matched_group_index;
@@ -362,6 +383,8 @@ sailr_func_date_ymd(vm_stack* vmstack, int num_args )
 
   arg_list_finalize( vmstack, num_args, arglist ); // Move sp pointer & deallocate arg_list* 
   vm_stack_push_ival( vmstack , idate );
+
+  return 1;
 }
 
 int
@@ -390,6 +413,8 @@ sailr_func_date_ym_weekday_nth(vm_stack* vmstack, int num_args )
 
   arg_list_finalize( vmstack, num_args, arglist ); // Move sp pointer & deallocate arg_list* 
   vm_stack_push_ival( vmstack , idate );
+
+  return 1;
 }
 
 
@@ -411,25 +436,27 @@ sailr_func_date_add_n_unit(vm_stack* vmstack, int num_args, int (*add_n_unit)(in
 
   arg_list_finalize( vmstack, num_args, arglist ); // Move sp pointer & deallocate arg_list* 
   vm_stack_push_ival( vmstack , idate );
+
+  return 1;
 }
 
 
 int
 sailr_func_date_add_n_years(vm_stack* vmstack, int num_args ) 
 {
-  sailr_func_date_add_n_unit(vmstack, num_args, &simple_date_add_n_years);
+  return sailr_func_date_add_n_unit(vmstack, num_args, &simple_date_add_n_years);
 }
 
 int
 sailr_func_date_add_n_months(vm_stack* vmstack, int num_args ) 
 {
-  sailr_func_date_add_n_unit(vmstack, num_args, &simple_date_add_n_months);
+  return sailr_func_date_add_n_unit(vmstack, num_args, &simple_date_add_n_months);
 }
 
 int
 sailr_func_date_add_n_days(vm_stack* vmstack, int num_args ) 
 {
-  sailr_func_date_add_n_unit(vmstack, num_args, &simple_date_add_n_days);
+  return sailr_func_date_add_n_unit(vmstack, num_args, &simple_date_add_n_days);
 }
 
 

@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -21,7 +22,7 @@ var_elem*
 var_hash_add_name (var_hash** hash, char* name)
 {
 	if (strlen(name) >= MAX_KEY_LEN - 1){
-{}//		printf("ERROR: Variable name is too long: %s \n", name);
+		Rprintf("ERROR: Variable name is too long: %s \n", name);
 	}
 
 	var_elem* result = NULL;
@@ -76,37 +77,54 @@ var_hash_names(var_hash** hash)
 	for( elem = *hash ; elem != NULL; elem = elem->hh.next) {
 		if( (elem->dummy) != 1 ){
 			char* new_str = (char*) malloc(sizeof(char) * MAX_KEY_LEN);
-			strncpy( new_str, elem->name , MAX_KEY_LEN - 1);
+			strncpy( new_str, elem->name , MAX_KEY_LEN );
+			new_str[MAX_KEY_LEN - 1] = '\0';
         	hash_names[idx] = new_str ;
 			idx = idx + 1;
 		}
 		if ( idx > hash_size ){
-{}//			printf("ERROR: hash size and real hash size mismatch.\n");
+			Rprintf("ERROR: hash size and real hash size mismatch.\n");
 		}
     }
 	return hash_names;
 }
 
 void
+var_hash_names_free( char** hash_names, int size )
+{
+  int idx;
+  char* name;
+  for(idx = 0 ; idx < size ; ++idx){
+    name = hash_names[idx];
+    free(name);
+  }
+  free(hash_names);
+}
+
+void
 var_hash_print_names(var_hash** hash)
 {
-{}//	printf("printing names in hash....\n");
+	Rprintf("printing names in hash....\n");
 	char** names = var_hash_names(hash);
 	int size = var_hash_size(hash);
 	int idx;
 	for(idx = 0; idx < size; ++idx){
-{}//		printf("%s \n", names[idx]);
+		Rprintf("%s \n", names[idx]);
 	}
+	var_hash_names_free(names, size);
 }
 
-int
+void
 var_hash_free(var_hash** hash){
 	var_elem* elem;
 	var_elem* temp;
 
+	/* When deleting elements of UTHASH, use both HASH_DEL() and free(). */
+	/* Without HASH_DEL(), some memory leak happens*/
 	HASH_ITER(hh, *hash, elem, temp) {
 //		printf("Delete %s\n", elem->name );
-		free(elem);
+		HASH_DEL(*hash, elem); 
+		free(elem);  /* Free structure & memory */
 	}
 }
 

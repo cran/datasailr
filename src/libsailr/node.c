@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include "node.h"
 #include "ptr_table.h"
 #include "helper.h"
@@ -29,9 +30,9 @@ char_to_int(char* num)
 	errno = 0; 
 	longval = strtol(num, &ep, 10); 
 	if (num[0] == '\0' || *ep != '\0') 
-{}//		printf("ERROR: Not a valid int number. \n");
+		Rprintf("ERROR: Not a valid int number. \n");
 	if ((errno == ERANGE && (longval == LONG_MAX || longval == LONG_MIN)) || (longval > INT_MAX || longval < INT_MIN)) 
-{}//		printf("ERROR: Invalid number out of int range. \n");
+		Rprintf("ERROR: Invalid number out of int range. \n");
 	ival = longval;
 	return ival;
 }
@@ -45,9 +46,9 @@ char_to_double(char* num)
 	errno = 0; 
 	dval = strtod(num, &ep); 
 	if (num[0] == '\0' || *ep != '\0') 
-{}//		printf("ERROR: Not a valid decimal number. \n");
+		Rprintf("ERROR: Not a valid decimal number. \n");
 	if (errno == ERANGE && (dval == DBL_MAX || dval == DBL_MIN)) 
-{}//		printf("ERROR: Invalid number out of double range. \n");
+		Rprintf("ERROR: Invalid number out of double range. \n");
 
 	return dval;
 }
@@ -129,6 +130,7 @@ new_node_rexp( string_object* pattern , ptr_table* table , const char* rexp_enco
 {
   NEW_NODE_HEADER
   ptr_record* record = ptr_table_create_anonym_rexp(&table, string_read(pattern), rexp_encoding );
+  string_free(pattern);
   TreeNode* nd = (TreeNode*)malloc(sizeof(TreeNode));
   nd->type = NODE_REXP;
   nd->e1.rexp_key = record->key ;

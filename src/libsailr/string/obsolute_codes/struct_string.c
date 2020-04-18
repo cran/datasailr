@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -10,8 +11,8 @@ new_struct_string( char* str , int byte_len )
 	size_t basic_struct_size = sizeof(struct_string);
 	size_t additional_size = sizeof(char)*(byte_len + 1 );
     #ifdef DEBUG
-{}//	printf("basic_struct_size: %zu \n", basic_struct_size);
-{}//	printf("additional_size: %zu \n", additional_size);
+	Rprintf("basic_struct_size: %zu \n", basic_struct_size);
+	Rprintf("additional_size: %zu \n", additional_size);
     #endif
     struct_string* temp = (struct_string *)malloc( basic_struct_size + additional_size ); 
     temp->len = byte_len; 
@@ -79,12 +80,12 @@ free_struct_string(struct_string* sstr)
 int main(int argc, char** argv){
 	char* example_str1 = "Hello World!";
 	size_t example_len1 = strlen("Hello World!");
-{}//	printf("%s \n", example_str1);
-{}//	printf("%zu \n", example_len1);
+	Rprintf("%s \n", example_str1);
+	Rprintf("%zu \n", example_len1);
 
 	struct_string* str1 = new_struct_string(example_str1, example_len1 );
-{}//	printf("%s \n", str1->buf);
-{}//	printf("%zu \n", strlen(str1->buf));
+	Rprintf("%s \n", str1->buf);
+	Rprintf("%zu \n", strlen(str1->buf));
 
     // No! Do not do this!!
     // https://stackoverflow.com/questions/9504588/should-i-free-char-initialized-using-string-literals
@@ -94,32 +95,32 @@ int main(int argc, char** argv){
 
 	char* example_str2 = "KONNICHIWA";
 	size_t example_len2 = strlen(example_str2);
-{}//	printf("%s \n", example_str2);
-{}//	printf("%zu \n", example_len2);
+	Rprintf("%s \n", example_str2);
+	Rprintf("%zu \n", example_len2);
 
 	struct_string* str2 = new_struct_string(example_str2, example_len2 );	
-{}//	printf("%s \n", str2->buf);
-{}//	printf("%zu \n", strlen(str2->buf));
+	Rprintf("%s \n", str2->buf);
+	Rprintf("%zu \n", strlen(str2->buf));
 
 	struct_string* strX = cat_struct_2strings( str1, str2 );	
-{}//	printf("%s \n", strX->buf);
-{}//	printf("%zu \n", strlen(strX->buf));
-{}//	printf("%zu \n", strX->len);
+	Rprintf("%s \n", strX->buf);
+	Rprintf("%zu \n", strlen(strX->buf));
+	Rprintf("%zu \n", strX->len);
 
 
 	char* example_str3 = "OHAYO";
 	size_t example_len3 = strlen(example_str3);
-{}//	printf("%s \n", example_str3);
-{}//	printf("%zu \n", example_len3);
+	Rprintf("%s \n", example_str3);
+	Rprintf("%zu \n", example_len3);
 
 	struct_string* str3 = new_struct_string(example_str3, example_len3 );	
-{}//	printf("%s \n", str3->buf);
-{}//	printf("%zu \n", strlen(str3->buf));
+	Rprintf("%s \n", str3->buf);
+	Rprintf("%zu \n", strlen(str3->buf));
 
 	struct_string* strY = cat_struct_strings( 2, str1, str3 );	
-{}//	printf("%s \n", strY->buf);
-{}//	printf("%zu \n", strlen(strY->buf));
-{}//	printf("%zu \n", strY->len);
+	Rprintf("%s \n", strY->buf);
+	Rprintf("%zu \n", strlen(strY->buf));
+	Rprintf("%zu \n", strY->len);
 
 }
 */

@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include <stdio.h>
 #include <string.h>
 #include "node.h"
@@ -73,7 +74,7 @@ gen_code_ident(TreeNode* nd, ptr_table* table)  // Terminal OK
 	} else if (record->type == PTR_NULL){
 		code = new_vm_inst_push_null(id_name);
 	} else {
-{}//		printf("ERROR: Inappropriate type is specified for varialbe. \n");
+		Rprintf("ERROR: Inappropriate type is specified for varialbe. \n");
 	}
 	return code; 
 }
@@ -119,7 +120,8 @@ convert_op(char* op_name)
 	} else if ( strcmp( op_name, "REXP_MATCH") == 0 ) {
 		return VM_REXP_MATCH;
 	} else {
-{}//		printf("ERROR: node op has undefined oprator!!\n");
+		Rprintf("ERROR: node op has undefined oprator!!\n");
+		return VM_NOP;
 	}
 }
 
@@ -170,7 +172,7 @@ gen_code_fcall( char* fname, int num_arg, vm_inst* farg_code)
     if( fname_len < MAX_FUNC_NAME_LEN){
         memcpy( fcall_inst->fname, fname, fname_len + 1 );
     } else { 
-{}//        printf("ERROR: function name is too long. over %d.", MAX_FUNC_NAME_LEN);
+        Rprintf("ERROR: function name is too long. over %d.", MAX_FUNC_NAME_LEN);
     }  
     fcall_inst->num_arg = num_arg;
 
@@ -342,11 +344,17 @@ vm_inst* gen_code(TreeNode* nd, ptr_table* table){
 	    nd_code = vm_inst_list_cat( nd_code, new_vm_inst_label(label_L2));
 	}
 
+	free(label_L1);
+	free(label_L2);
+
 	return nd_code;
     break;
 
   case NODE_NULL:
+  default:
     DEBUG_PRINT("This part should not be executed.\n");
+
+	return NULL;
     break;
   }
   DEBUG_FLUSH();

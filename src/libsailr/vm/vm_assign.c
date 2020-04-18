@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include <string.h>
 #include <stdio.h>
 #include "common_string.h"
@@ -16,8 +17,7 @@ int vm_stack_assign_copy_str_to_record(ptr_record* left_record, stack_item* rval
 // Needed?
 int vm_stack_convert_str_item_into_void(ptr_record* left_record, stack_item* rvalue);
 
-#define PTR_TABLE_NULL_UPDATED( ptr_to_ptr_record , ptr_type ) ({ ptr_table* table = ptr_record_obtain_table( ptr_to_ptr_record ); ptr_table_info_change_null_updated_by_type(&table, ptr_type ); })
-
+#define PTR_TABLE_NULL_UPDATED( ptr_to_ptr_record , ptr_type ) do{ ptr_table* table = ptr_record_obtain_table( ptr_to_ptr_record ); ptr_table_info_change_null_updated_by_type(&table, ptr_type ); } while(0)
 
 int
 vm_stack_store_val(vm_stack* vmstack)
@@ -30,7 +30,7 @@ vm_stack_store_val(vm_stack* vmstack)
 	// If they are not stored on heap, there are possibilities that they are automatically destroyed.
 	ptr_record* left_record;
 	if( (lvalue->type != NULL_ITEM) && (lvalue->type != PP_IVAL ) && (lvalue->type != PP_DVAL ) && (lvalue->type != PP_STR )){
-{}//		printf("ERROR: lvalue should be pointer to pointer, such as PP_IVAL, PP_DVAL or PP_STR, or NULL_ITEM.\n");
+		Rprintf("ERROR: lvalue should be pointer to pointer, such as PP_IVAL, PP_DVAL or PP_STR, or NULL_ITEM.\n");
 	} else {
 		left_record = (ptr_record*)lvalue->p_record;
 	}
@@ -97,7 +97,7 @@ vm_stack_store_val(vm_stack* vmstack)
 				PTR_TABLE_NULL_UPDATED(left_record, PTR_REXP);
 				left_record->type = PTR_REXP;
 				if( vm_stack_item_is_temp(rvalue) ){ // If rvalue is temporary, use the object.
-{}//					printf("LVALUE is unknown and rvalue is temp rexp.\n");
+					Rprintf("LVALUE is unknown and rvalue is temp rexp.\n");
 					left_record->address = (simple_re*) *(rvalue->pp_rexp);
 					free(rvalue->pp_rexp);
 					rvalue->pp_rexp = NULL;
@@ -108,7 +108,7 @@ vm_stack_store_val(vm_stack* vmstack)
 				}
 				left_record->gc = GC_YES;
 			}else{
-{}//				printf("ERROR: Only IVAL, DVAL, PP_STR or PP_REXP can be rvalue for assignment operator.\n");
+				Rprintf("ERROR: Only IVAL, DVAL, PP_STR or PP_REXP can be rvalue for assignment operator.\n");
             }
 
 		// ------------------------------
@@ -134,7 +134,7 @@ vm_stack_store_val(vm_stack* vmstack)
 				}
 				left_record->gc = left_record->gc; // No change.
 			}else {
-{}//				printf("ERROR: Object other than PP_STR is trying to be assigned to PTR_STR.\n");
+				Rprintf("ERROR: Object other than PP_STR is trying to be assigned to PTR_STR.\n");
 			}
 		}
 
@@ -145,7 +145,7 @@ vm_stack_store_val(vm_stack* vmstack)
 	// as PP_IVAL. 
 	}else if(lvalue->type == PP_IVAL){
 		if(left_record->type != PTR_INT){
-{}//			printf("ERROR: ptr record should be PTR_INT. This branch should never be executed. \n");
+			Rprintf("ERROR: ptr record should be PTR_INT. This branch should never be executed. \n");
 		}else{
 			vm_stack_assign_numval_to_ptr_int_record(left_record, rvalue);
 		}
@@ -153,7 +153,7 @@ vm_stack_store_val(vm_stack* vmstack)
 	// as PP_DVAL
 	}else if(lvalue->type == PP_DVAL){
 		if(left_record->type != PTR_DBL){
-{}//			printf("ERROR: ptr record should be PTR_DBL. This branch should never be executed. \n");
+			Rprintf("ERROR: ptr record should be PTR_DBL. This branch should never be executed. \n");
 		}else{
 			vm_stack_assign_numval_to_ptr_dbl_record(left_record, rvalue);
 		}
@@ -161,7 +161,7 @@ vm_stack_store_val(vm_stack* vmstack)
 	// as PP_STR
 	}else if(lvalue->type == PP_STR){
 		if(left_record->type != PTR_STR){
-{}//			printf("ERROR: ptr record should be PTR_STR. This branch should never be executed. \n");
+			Rprintf("ERROR: ptr record should be PTR_STR. This branch should never be executed. \n");
 		}else{
 			if(rvalue->type == PP_STR){
 				ptr_record_free_gc_required_memory( left_record );
@@ -172,7 +172,7 @@ vm_stack_store_val(vm_stack* vmstack)
 				}
 				left_record->gc = left_record->gc; // No change.
 			}else {
-{}//				printf("ERROR: Object other than PP_STR is trying to be assigned to PTR_STR.\n");
+				Rprintf("ERROR: Object other than PP_STR is trying to be assigned to PTR_STR.\n");
 			}
 		}
 	}
@@ -195,8 +195,10 @@ vm_stack_assign_numval_to_ptr_dbl_record(ptr_record* left_record, stack_item* rv
 				*((double*)left_record->address) = rvalue->dval;
 				left_record->gc = left_record->gc; // This heap area is usually prepared by library user.
 			}else {
-{}//				printf("ERROR: Object other than IVAL an DVAL is trying to be assigned to PTR_DBL.\n");
+				Rprintf("ERROR: Object other than IVAL an DVAL is trying to be assigned to PTR_DBL.\n");
+				return -1;
 			}
+			return 1;
 }
 
 int
@@ -214,8 +216,10 @@ vm_stack_assign_numval_to_ptr_int_record(ptr_record* left_record, stack_item* rv
 				*((double*)left_record->address) = rvalue->dval;
 				left_record->gc = left_record->gc; // This heap area is usually prepared by library user.
 			}else {
-{}//				printf("ERROR: Object other than IVAL an DVAL is trying to be assigned to PTR_INT.\n");
+				Rprintf("ERROR: Object other than IVAL an DVAL is trying to be assigned to PTR_INT.\n");
+				return -1;
 			}
+			return 1;
 }
 
 int
@@ -225,12 +229,14 @@ vm_stack_assign_temp_str_to_record(ptr_record* left_record, stack_item* rvalue)
 	free(rvalue->pp_str);
 	rvalue->pp_str = NULL;
 	rvalue->type = VOID_ITEM;
+	return 1;
 }
 
 int
 vm_stack_assign_copy_str_to_record(ptr_record* left_record, stack_item* rvalue)
 {
 	left_record->address = (void*) string_new(string_read((string_object*) *(rvalue->pp_str)));
+	return 1;
 }
 
 

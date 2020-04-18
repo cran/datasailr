@@ -429,6 +429,20 @@ age2 = age
 * COPYRIGHT is updated. (Mar. 22 2020)
 
 
+## Ver 0.8.3
+
+* Solve valgrind errors (Apr. 5-11 2020)
+    + Fix memory leaks.
+    + Avoid multiple deallocation for the same memory.
+    + Memory for string was unintentionally freed.
+* Warnings by -Wreturn-type -Wparentheses -Wunused-value are solved. (Apr. 12 2020)
+* Macro functions are changed to use do{}while(0). For portable codes, statement expressions are removed. (Apr.16 2020)
+* Anonymous unions are changed to be used only in c11 or higher (__STDC_VERSION__ >= 201112L). (Apr.16 2020)
+* Binary literals are now only used in C11 or higher.
+* C++ errors are now catched by reference.
+* sprintf() is removed. snprintf() is now used to avoid warnings.
+
+
 ## Plan 
 
 * Report run time error.

@@ -1,12 +1,43 @@
 # autoconf setting 
 
 AC_PREREQ([2.69])
-AC_INIT([datasailr], 0.8.1, toshi@niceume.com)
+AC_INIT([datasailr], 0.8.3, toshi@niceume.com)
 AC_CONFIG_SRCDIR([src/Makevars.in])
 
+# Check R_HOME
+echo "R_HOME is set to ${R_HOME}"
+if test -z "${R_HOME}"; then
+  echo "could not determine R_HOME"
+  exit 1
+fi
+
+# R headers
+r_include_path=`"${R_HOME}/bin/Rscript" -e 'cat(R.home("include"))'`
+add_r_include_path="-I${r_include_path} "
+
+# C++
+CXX11=`"${R_HOME}/bin/R" CMD config CXX11`
+  if test -z "$CXX11"; then
+  AC_MSG_ERROR([No C++11 compiler is available])
+fi
+# CXX11STD=`"${R_HOME}/bin/R" CMD config CXX11STD`
+# CXX="${CXX11} ${CXX11STD}"
+# CXXFLAGS=`"${R_HOME}/bin/R" CMD config CXX11FLAGS`
 AC_LANG(C++)
 AC_REQUIRE_CPP
 AC_PROG_CXX
+
+# C
+CC=`"${R_HOME}/bin/R" CMD config CC`
+CPICFLAGS=`"${R_HOME}/bin/R" CMD config CPICFLAGS`
+CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
+CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
+AC_LANG(C)
+AC_REQUIRE_CPP
+AC_PROG_CC
+
+# Make
+MAKE=`"${R_HOME}/bin/R" CMD config MAKE`
 
 # compile Attributes for rcpp
 sh ./exec/compileAttr.sh
@@ -80,11 +111,11 @@ AS_IF( [test "$which_onigmo" = "USER"],
   fi
   if test -f "${current_path}/src/Onigmo/configure" ; then
 	eval "mkdir -p ${current_path}/src/Onigmo/build"
-    eval "cd ${current_path}/src/Onigmo/; ./configure --prefix=${current_path}/src/Onigmo/build CFLAGS=-fPIC; cd  ${current_path};"
+    eval 'cd ${current_path}/src/Onigmo/; ./configure --prefix=${current_path}/src/Onigmo/build CC="${CC}" CFLAGS="${CPICFLAGS} ${CFLAGS} ${CPPFLAGS}" CXX="${CXX}" ARLIB="${AR}" ARDLL="${CC}" RANLIB="${RANLIB}" RC="${RESCOMP}"; cd  ${current_path};'
     echo "${current_path}/src/Onigmo/configure is successfully executed."
-    eval "make --directory ${current_path}/src/Onigmo/"
-    eval "make install --directory ${current_path}/src/Onigmo/"
-    echo "make is successfully executed."
+    eval '${MAKE} --directory ${current_path}/src/Onigmo/'
+    eval "${MAKE} install --directory ${current_path}/src/Onigmo/"
+    echo "${MAKE} is successfully executed."
     eval "rm ${current_path}/src/Onigmo/build/lib/libonigmo.so"
 	echo "dynamic library of onigmo is deleted"
   else
@@ -98,6 +129,7 @@ AS_IF( [test "$which_onigmo" = "USER"],
 # Export the following shell variables as substitute variales.
 AC_SUBST([add_onigmo_include_path])
 AC_SUBST([add_onigmo_lib_path])
+AC_SUBST([add_r_include_path])
 
 # create and report output
 AC_CONFIG_FILES([src/Makevars])

@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include "simple_re.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,7 +28,7 @@ simple_re_compile( const char* pattern, const char* enc )
 	return_value = onig_new_without_alloc( regexp, pattern_start , pattern_end , ONIG_OPTION_SINGLELINE , onig_enc, onig_syntax , &einfo);
 
 	if(return_value != ONIG_NORMAL){
-{}//		printf("ERROR: Invalied regular epxression: %s \n", pattern);
+		Rprintf("ERROR: Invalied regular epxression: %s \n", pattern);
 	}
 
 	simple_re* new_re = simple_re_new();
@@ -113,15 +114,15 @@ simple_re_matched_str( simple_re* re , int idx )
 	char* new_str;
 
 	if(re->matched == NULL){
-{}//		printf("WARNING: No available matched information. \n ");
+		Rprintf("WARNING: No available matched information. \n ");
 		matched_str = NULL ;
 		return matched_str ;
 	}
 
 	matched = re->matched;
 	num_groups = simple_re_matched_group_num( re );
-	if(idx < 0 | idx > num_groups ){
-{}//		printf("ERROR: Index is not within matched groups. \n");
+	if((idx < 0) | (idx > num_groups)){
+		Rprintf("ERROR: Index is not within matched groups. \n");
 		matched_str = NULL;
 		return matched_str ;
 	}else{
@@ -271,7 +272,7 @@ OnigEncoding ore_name_to_onig_enc (const char *enc)
     else
     {
 //        warning("Encoding \"%s\" is not supported by Oniguruma - using ASCII", enc);
-{}//        printf("Encoding \"%s\" is not supported by Oniguruma - using ASCII", enc);        
+        Rprintf("Encoding \"%s\" is not supported by Oniguruma - using ASCII", enc);        
 		return ONIG_ENCODING_ASCII;
     }
 }

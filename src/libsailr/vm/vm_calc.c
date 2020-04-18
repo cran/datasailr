@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -228,7 +229,7 @@ vm_calc_addx(vm_stack* vmstack, ptr_table** table)
 			vm_stack_push_temp_pp_str( vmstack, new_pp_str);
 			return 1;
 		}else{
-{}//			printf("ERROR: ADDX should be applied to 'num and num' or 'str and str' on stack.\n");
+			Rprintf("ERROR: ADDX should be applied to 'num and num' or 'str and str' on stack.\n");
 			return 0;
 		}
 		vm_stack_clean_and_pop( vmstack, 2);
@@ -238,7 +239,7 @@ vm_calc_addx(vm_stack* vmstack, ptr_table** table)
 }
 
 #define DEFINE_BINARY_OPERATOR( INTFUNC , DBLFUNC ) \
-({ \
+do { \
 	int sp = vmstack->sp; \
 	stack_item* stack = vmstack->stack; \
 	stack_item* top_item = vm_stack_top(vmstack); \
@@ -271,13 +272,14 @@ vm_calc_addx(vm_stack* vmstack, ptr_table** table)
 		}else if((top_item->type == DVAL) && (sec_item->type == DVAL)){ \
 			result_dval = DBLFUNC ( sec_item->dval , top_item->dval ) ; \
 		}else{ \
+			Rprintf("This VM_CMD should be applied to num and num on stack.\n"); \
 			return 0; \
 		} \
 		vm_stack_clean_and_pop( vmstack, 2); \
 		vm_stack_push_dval( vmstack, result_dval ); \
 	} \
 	return 1; \
-})
+} while(0)
 
 int
 vm_calc_mulx(vm_stack* vmstack)
@@ -342,7 +344,7 @@ vm_calc_divx(vm_stack* vmstack)
 		}else if((top_item->type == DVAL) && (sec_item->type == DVAL)){
 			result_dval = dbl_div( sec_item->dval , top_item->dval ) ;
 		}else{
-{}//			printf("ERROR: DIVX should be applied to num and num on stack.\n");
+			Rprintf("ERROR: DIVX should be applied to num and num on stack.\n");
 			return 0;
 		}
 		vmstack->sp = vmstack->sp - 1; 
@@ -387,7 +389,7 @@ vm_calc_factorial(vm_stack* vmstack)
 			top_item->type = IVAL;
 			top_item->ival = result_ival;		
 	} else {
-{}//		printf("ERROR: FACT should be applied to num and num on stack.\n");
+		Rprintf("ERROR: FACT should be applied to num and num on stack.\n");
 		return 0;
 	}
 	return 1;
@@ -417,7 +419,7 @@ int vm_calc_uminus(vm_stack* vmstack)
 			top_item->type = DVAL;
 			top_item->dval = result_dval;		
 	} else {
-{}//		printf("ERROR: uminus should be applied to num and num on stack.\n");
+		Rprintf("ERROR: uminus should be applied to num and num on stack.\n");
 		return 0;
 	}
 	return 1;
@@ -440,7 +442,7 @@ vm_calc_and(vm_stack* vmstack)
 		sec_item->type = BOOLEAN ;
 		sec_item->boolean = result_bool;
 	}else{
-{}//		printf("ERROR: AND should be applied to boolean and boolean.\n");
+		Rprintf("ERROR: AND should be applied to boolean and boolean.\n");
 		return 0;
 	}
 	return 1;
@@ -461,7 +463,7 @@ vm_calc_or(vm_stack* vmstack)
 		sec_item->type = BOOLEAN ;
 		sec_item->boolean = result_bool;
 	}else{
-{}//		printf("ERROR: AND should be applied to boolean and boolean.\n");
+		Rprintf("ERROR: AND should be applied to boolean and boolean.\n");
 		return 0;
 	}
 	return 1;
@@ -502,9 +504,8 @@ vm_calc_eq(vm_stack* vmstack)
 		}
 	}else if(item_is_str(sec_item) && item_is_str(top_item)){
 		result_bool = string_compare( *(sec_item->pp_str), *(top_item->pp_str) ) ;
-		result_bool;
 	}else{
-{}//		printf("ERROR: Types are invalied for VM_EQ command.\n");
+		Rprintf("ERROR: Types are invalied for VM_EQ command.\n");
 		return 0;
 	}
 
@@ -552,9 +553,8 @@ vm_calc_neq(vm_stack* vmstack)
 		}
 	}else if(item_is_str(sec_item) && item_is_str(top_item)){
 		result_bool = !(string_compare( *(sec_item->pp_str), *(top_item->pp_str) )) ;
-		result_bool;
 	}else{
-{}//		printf("ERROR: Types are invalied for VM_EQ command.\n");
+		Rprintf("ERROR: Types are invalied for VM_EQ command.\n");
 		return 0;
 	}
 
@@ -567,7 +567,7 @@ vm_calc_neq(vm_stack* vmstack)
 }
 
 #define DEFINE_LOGICAL_OPERATOR( OP ) \
-({ \
+do { \
 	int sp = vmstack->sp; \
 	stack_item* stack = vmstack->stack; \
 	stack_item* top_item = vm_stack_top(vmstack); \
@@ -587,15 +587,17 @@ vm_calc_neq(vm_stack* vmstack)
 			result_bool = ( sec_item->dval OP top_item->dval ) ; \
 		} \
 	}else if(item_is_str(sec_item) && item_is_str(top_item)){ \
+		Rprintf("ERROR: String is not supported for OP calculation.\n"); \
 		return 0; \
 	}else{ \
+		Rprintf("ERROR: Types are invalied for OP calculation.\n"); \
 		return 0; \
 	} \
 	vmstack->sp = vmstack->sp - 1;  \
 	sec_item->type = BOOLEAN ; \
 	sec_item->boolean = result_bool; \
 	return 1; \
-})
+} while(0)
 
 int
 vm_calc_gt(vm_stack* vmstack)
@@ -636,20 +638,10 @@ vm_calc_neg(vm_stack* vmstack)
 		top_item->type = BOOLEAN ;
 		top_item->boolean = result_bool;
 	}else{
-{}//		printf("ERROR: Type is invalied for VM_NEG command.\n");
+		Rprintf("ERROR: Type is invalied for VM_NEG command.\n");
 		return 0;
 	}
 	return 1;
 }
-
-
-
-
-
-
-
-
-
-
 
 

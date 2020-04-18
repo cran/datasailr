@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #line 2 "lex.yy.c"
 
 #line 4 "lex.yy.c"

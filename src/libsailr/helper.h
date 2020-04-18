@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #ifndef SAILR_HELPER_H
 #define SAILR_HELPER_H
 

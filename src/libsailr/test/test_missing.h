@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include "sailr.h"
 #include <CUnit/CUnit.h>
 #include <CUnit/Basic.h>

@@ -99,6 +99,12 @@ main(int argc, char** argv)
 	} 
 	std::cout << std::endl; )
 
+	// Free temporarily used cstring variable names
+	// In the future, it is better to provide iteration for var name access, then no need to free.
+	sailr_varnames_free(vars, var_num);
+	sailr_varnames_free(lhs_vars, lhs_var_num);
+	sailr_varnames_free(rhs_vars, rhs_var_num);
+
 
 	// Assinging pointers onto table
 
@@ -269,6 +275,10 @@ main(int argc, char** argv)
 //	char* record_list[] = {"_HEAD_OF_UTHASH_", "greeting","bmi", "date", "date_str"};
 //	sailr_ptr_table_del_records_except(&table, record_list, sizeof(record_list) / sizeof(record_list[0]));
 //	sailr_ptr_table_show_all(&table);
+
+	/* Free memory for instructions */
+	sailr_vm_inst_list_free( inst_list );
+	sailr_vm_inst_code_free( vmcode );
 
     /* Free memory */
 	VERBOSE( std::cout << "----- Memory areas are going to be freed -----" << std::endl; )

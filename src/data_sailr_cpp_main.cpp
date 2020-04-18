@@ -38,8 +38,10 @@ typedef unsigned int SXPTYPE;
 // Macro
 #ifdef DEBUG
 #define IF_DEBUG(x) do{ x } while(false) 
+#define IF_DEBUG_DECL(x) x
 #else
 #define IF_DEBUG(x) do{ } while( false )
+#define IF_DEBUG_DECL(x) do{ } while( false )
 #endif
 
 /* --------------------------------------------------------- */
@@ -188,7 +190,7 @@ vec_list_add_null_vec ( VEC_LIST* vec_list, char* var_name , int size)
 
 void
 vec_list_free( VEC_LIST* vl){
-	IF_DEBUG( char* var_name );
+	IF_DEBUG_DECL( char* var_name; );
 	void* column_vec1;
 	void* column_vec2;
 	void* column_vec3;
@@ -906,8 +908,30 @@ data_sailr_cpp_execute( Rcpp::CharacterVector rchars, Rcpp::DataFrame df)
 
 	// Initializing parser_state, which stores TreeNode*.
 	IF_DEBUG( Rcpp::Rcout << "Constructing parse tree."  << std::endl ; );
+	int parse_result;
 	parser_state_object* ps = sailr_new_parser_state ((char*)"Code from R", table);
-	sailr_run_parser( code.c_str(), ps );  // Now ps now holds AST tree and ptr_table!!
+	parse_result = sailr_run_parser( code.c_str(), ps );  // Now ps now holds AST tree and ptr_table!!
+
+	// Check whether parsing succeeded or not. When fails, free memory and stop this function.
+	if(parse_result == 0 ){
+	  IF_DEBUG( Rcpp::Rcout << "Success: sailr script is successfully parsed" << std::endl; );
+	}else {
+	  /* Free memory */
+	  IF_DEBUG( Rcpp::Rcout << "Free parser tree" << std::endl; );
+	  sailr_tree_free(ps);
+	  IF_DEBUG( Rcpp::Rcout << "Free pointer table" << std::endl; );
+	  sailr_ptr_table_del_all(&table);
+	  IF_DEBUG( Rcpp::Rcout << "Free parser state object" << std::endl; );
+	  sailr_parser_state_free(ps);
+
+	  if(parse_result == 1){
+	    Rcpp::stop( "sailr script syntax error (code: %d)\n", parse_result );
+	  }else if(parse_result == 2){
+	    Rcpp::stop( "memory exhausted during parsing (code: %d)\n", parse_result );
+	  }else{
+	    Rcpp::stop( "yyparse returned unknown code (code: %d)\n" , parse_result );
+	  }
+	}
 
 	// Show parse tree
 	IF_DEBUG( Rcpp::Rcout << "Show parse tree"  << std::endl ; );
@@ -1111,6 +1135,18 @@ data_sailr_cpp_execute( Rcpp::CharacterVector rchars, Rcpp::DataFrame df)
 	IF_DEBUG( Rcpp::Rcout << "Convert vec_list to Rcpp::DataFrame" << std::endl; );
 	DataFrame new_df = ConvertVecList(vec_list, lhs_vars);
 	
+	// Free temporarily used cstring variable names
+	// In the future, it is better to provide iteration for var name access, then no need to free.
+	sailr_varnames_free(var_array, var_num);
+	sailr_varnames_free(lhs_var_array, lhs_var_num);
+	sailr_varnames_free(rhs_var_array, rhs_var_num);
+
+	/* Free memory of instructions */
+	IF_DEBUG( Rcpp::Rcout << "Free VM instruction list" << std::endl; );
+	sailr_vm_inst_list_free( inst_list );
+	IF_DEBUG( Rcpp::Rcout << "Free VM instruction code" << std::endl; );
+	sailr_vm_inst_code_free( vmcode );
+
 	/* Free memory */
 	IF_DEBUG( Rcpp::Rcout << "Free parser tree" << std::endl; );
 	sailr_tree_free(ps);

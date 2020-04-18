@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 /*
     libsailr - virtual machine library for arithmetic calculation and string manipulation 
     Copyright (C) 2018-2019 Toshi Umehara <toshi@niceume.com>
@@ -94,7 +95,7 @@ sailr_tree_dump( parser_state_object* ps )
 	tree_dump( ((parser_state*) ps)->tree, 0);
 }
 
-int
+void
 sailr_tree_free(parser_state_object* ps)
 {
 	tree_free( ((parser_state*) ps)->tree, 0);
@@ -152,6 +153,18 @@ sailr_vm_inst_list_show_all( vm_inst_object* insts )
 }
 
 void
+sailr_vm_inst_list_free( vm_inst_object* inst_list )
+{
+  vm_inst_list_free( (vm_inst_list*) inst_list ); 
+}
+
+void
+sailr_vm_inst_code_free( vm_inst_object* vmcode )
+{
+  free( (vm_inst*) vmcode );
+}
+
+void
 sailr_vm_exec_code( vm_inst_object* code , int num_insts , ptr_table_object* table , vm_stack_object* vmstack)
 {
 	vm_exec_code((vm_inst*)code, num_insts, (ptr_table*)table, (vm_stack*)vmstack);
@@ -186,8 +199,7 @@ sailr_ptr_table_create_anonym_string(ptr_table_object** table, const char* str)
 ptr_record_object*
 sailr_ptr_table_create_string_from_cstring(ptr_table_object** table, const char* key, const char* str)
 {
-	string_object* new_str = string_new(str);
-	return (ptr_record_object*) ptr_table_create_string((ptr_table**)table, key, &new_str);
+	return (ptr_record_object*) ptr_table_create_string_from_cstring((ptr_table**)table, key, str);
 }
 
 
@@ -232,7 +244,7 @@ sailr_ptr_record_get_type(ptr_record_object* pr)
 			return 'f';
 		break;
 		default:
-{}//			printf("ERROR: Unintended type of ptr_record. %c \n", record->type);
+			Rprintf("ERROR: Unintended type of ptr_record. %c \n", record->type);
 			return 'x';
 		break;
 	}
@@ -298,16 +310,16 @@ sailr_ptr_record_reset_rexp(ptr_record_object* pr)
 	return ptr_record_reset_rexp((ptr_record*) pr);
 }
 
-int
+void
 sailr_ptr_table_del_records_except(ptr_table_object** table, const char** keys, int key_num )
 {
-	return ptr_table_del_records_except((ptr_table**)table, keys, key_num );
+	ptr_table_del_records_except((ptr_table**)table, keys, key_num );
 }
 
-int
+void
 sailr_ptr_table_del_all(ptr_table_object** table)
 {
-	return ptr_table_del_all((ptr_table**) table);
+	ptr_table_del_all((ptr_table**) table);
 }
 
 
@@ -384,4 +396,9 @@ sailr_lhs_varnames_num(parser_state_object* psobj)
 	return var_hash_size(&(ps->lhsvars));
 }
 
+void
+sailr_varnames_free( char** varnames , int size)
+{
+	var_hash_names_free( varnames, size );
+}
 

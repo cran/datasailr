@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,35 +12,35 @@ vm_inst_show( vm_inst* inst )
 	char* cmd_str = vm_cmd_to_string(inst->cmd);
 	switch(inst->cmd){
 	case VM_PUSH_IVAL:
-{}//		printf("CMD:%s\t ARG:.ival=%d\n", cmd_str, inst->ival);
+		Rprintf("CMD:%s\t ARG:.ival=%d\n", cmd_str, inst->ival);
 		break;
 	case VM_PUSH_DVAL:
-{}//		printf("CMD:%s\t ARG:.dval=%f\n", cmd_str, inst->dval);
+		Rprintf("CMD:%s\t ARG:.dval=%f\n", cmd_str, inst->dval);
 		break;
 	case VM_PUSH_PP_IVAL:
 	case VM_PUSH_PP_DVAL:
 	case VM_PUSH_PP_STR:
 	case VM_PUSH_PP_REXP:
-{}//		printf("CMD:%s\t ARG:.ptr_key=%s\n", cmd_str, inst->ptr_key);
+		Rprintf("CMD:%s\t ARG:.ptr_key=%s\n", cmd_str, inst->ptr_key);
 		break;
     case VM_PUSH_PP_NUM:
-{}//		printf("CMD:%s\t ARG:.ptr_key=%s\n", cmd_str, inst->ptr_key);
+		Rprintf("CMD:%s\t ARG:.ptr_key=%s\n", cmd_str, inst->ptr_key);
 		break;
     case VM_PUSH_NULL:
-{}//		printf("CMD:%s\t ARG:.ptr_key=%s\n", cmd_str, inst->ptr_key);
+		Rprintf("CMD:%s\t ARG:.ptr_key=%s\n", cmd_str, inst->ptr_key);
 		break;
 	case VM_LABEL:
-{}//		printf("CMD:%s\t ARG:.label=%s\n", cmd_str, inst->label);
+		Rprintf("CMD:%s\t ARG:.label=%s\n", cmd_str, inst->label);
 		break;
 	case VM_JMP:
 	case VM_FJMP:
-{}//		printf("CMD:%s\t ARG:.label=%s\n", cmd_str, inst->label);
+		Rprintf("CMD:%s\t ARG:.label=%s\n", cmd_str, inst->label);
 		break;
 	case VM_FCALL:
-{}//		printf("CMD:%s\t ARG:.fname=%s  .num_arg=%d\n", cmd_str, inst->fname, inst->num_arg);
+		Rprintf("CMD:%s\t ARG:.fname=%s  .num_arg=%d\n", cmd_str, inst->fname, inst->num_arg);
 		break;
 	default:
-{}//		printf("CMD:%s\n", cmd_str);
+		Rprintf("CMD:%s\n", cmd_str);
 		break;
 	}
 }
@@ -47,7 +48,27 @@ vm_inst_show( vm_inst* inst )
 int
 vm_inst_free( vm_inst* inst )
 {
+	switch(inst->cmd){
+	case VM_PUSH_PP_IVAL:
+	case VM_PUSH_PP_DVAL:
+	case VM_PUSH_PP_NUM:
+	case VM_PUSH_PP_STR:
+	case VM_PUSH_PP_REXP:
+	case VM_PUSH_NULL:
+		free(inst->ptr_key);
+		break;
+	case VM_LABEL:
+	case VM_FJMP:
+	case VM_JMP:
+		free(inst->label);
+		break;
+	case VM_FCALL: // Function name is stored in an array of chars.
+		break;
+	default:
+		break;
+	}
 	free(inst);
+	return 1;
 }
 
 
@@ -63,7 +84,7 @@ vm_code_jmp(vm_code code, int idx, char* label, int max_line)
 			return (idx - start_idx - 1);  // return num of steps to move forward. (idx will be incremented one more.)
 		}
 	}
-{}//	printf( "ERROR: The label to jmp to could not be found in VM code.\n" );
+	Rprintf( "ERROR: The label to jmp to could not be found in VM code.\n" );
 	return -1 ;
 }
 

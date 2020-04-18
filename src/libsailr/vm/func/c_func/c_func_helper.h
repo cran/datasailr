@@ -1,3 +1,4 @@
+#include <R_ext/Print.h>
 /* This helper file is recommended to be included when defining new functions. */
 #ifndef FUNC_HELPER_H
 #define FUNC_HELPER_H
@@ -27,7 +28,7 @@ arg_item* arg_item_new( stack_item* item );
 bool arg_num_should_be( int num_args1, int num_args2 );
 bool arg_num_should_be_larger_than( int num_args1, int num_args2 );
 bool arg_num_should_be_smaller_than( int num_args1, int num_args2 );
-int arg_item_push_back(arg_item** items, arg_item** new_item);
+void arg_item_push_back(arg_item** items, arg_item** new_item);
 arg_list* arg_list_initialize(vm_stack* vmstack , int num_args );
 int arg_list_finalize(vm_stack* vmstack, int num_args, arg_list* alist);
 int arg_item_next( arg_item** item );
@@ -53,7 +54,7 @@ arg_num_should_be(int num_args1, int num_args2)
   if( num_args1 == num_args2){
     return true;
   } else {
-{}//    printf("ERROR: number of args is not specified correctly. Specified: %d , Intended: %d\n", num_args1, num_args2);
+    Rprintf("ERROR: number of args is not specified correctly. Specified: %d , Intended: %d\n", num_args1, num_args2);
     return false;
   }
 }
@@ -64,7 +65,7 @@ arg_num_should_be_larger_than(int num_args1, int num_args2)
   if( num_args1 > num_args2){
     return true;
   } else {
-{}//    printf("ERROR: number of args is not specified correctly. Specified: %d , Intended: %d\n", num_args1, num_args2);
+    Rprintf("ERROR: number of args is not specified correctly. Specified: %d , Intended: %d\n", num_args1, num_args2);
     return false;
   }
 }
@@ -75,7 +76,7 @@ arg_num_should_be_smaller_than(int num_args1, int num_args2)
   if( num_args1 < num_args2){
     return true;
   } else {
-{}//    printf("ERROR: number of args is not specified correctly. Specified: %d , Intended: %d\n", num_args1, num_args2);
+    Rprintf("ERROR: number of args is not specified correctly. Specified: %d , Intended: %d\n", num_args1, num_args2);
     return false;
   }
 }
@@ -91,7 +92,7 @@ arg_item_new( stack_item* item )
   return arg;
 }
 
-int
+void
 arg_item_push_back(arg_item** pp_items, arg_item** pp_new_item)
 {
   arg_item* p_items = *pp_items;
@@ -131,7 +132,7 @@ int
 arg_list_finalize(vm_stack* vmstack, int num_args, arg_list* alist)
 {
   arg_list_free(alist);
-  vm_stack_clean_and_pop(vmstack, num_args);
+  return vm_stack_clean_and_pop(vmstack, num_args);
 }
 
 int
@@ -198,6 +199,13 @@ arg_item_confirm_string( arg_item* arg)
   return arg_item_confirm_type( arg, PP_STR);
 }
 
+// confirm regular expression
+bool
+arg_item_confirm_rexp( arg_item* arg)
+{
+  return arg_item_confirm_type( arg, PP_REXP);
+}
+
 // return type using char
 char
 arg_item_interpret_type( arg_item* arg)
@@ -208,6 +216,8 @@ arg_item_interpret_type( arg_item* arg)
     return 'd';
   }else if(arg_item_confirm_string(arg)){
     return 's';
+  }else if(arg_item_confirm_rexp(arg)){
+    return 'r';
   }else if(arg_item_confirm_type(arg, BOOLEAN)){
     return 'b';
   }else if(arg_item_confirm_type(arg, NULL_ITEM)){
@@ -227,7 +237,7 @@ arg_item_int_value( arg_item* arg )
   }else if (arg_item_confirm_type(arg, PP_IVAL) ){
     value = **(arg->item->pp_ival);
   }else{
-{}//    printf("ERROR: the stack item does not hold int value. \n");
+    Rprintf("ERROR: the stack item does not hold int value. \n");
   }
   return value;
 }
@@ -242,7 +252,7 @@ arg_item_double_value( arg_item* arg )
   }else if (arg_item_confirm_type(arg, PP_DVAL) ){
     value = **(arg->item->pp_dval);
   }else{
-{}//    printf("ERROR: the stack item does not hold double value. \n");
+    Rprintf("ERROR: the stack item does not hold double value. \n");
 
   }
   return value;
@@ -258,7 +268,7 @@ arg_item_string_obj( arg_item* arg)
     pp_obj = (arg->item)->pp_str;
     temp_obj = *pp_obj;
   }else{
-{}//    printf("ERROR: the stack item does not hold string value. \n");
+    Rprintf("ERROR: the stack item does not hold string value. \n");
   }
   return (string_object*) temp_obj;
 }
@@ -272,7 +282,7 @@ arg_item_string_char( arg_item* arg )
   if(arg_item_confirm_type(arg, PP_STR) ){
     str = string_read( (string_object*) *( arg->item->pp_str)) ;
   }else{
-{}//    printf("ERROR: the stack item does not hold string value. \n");
+    Rprintf("ERROR: the stack item does not hold string value. \n");
   }
   return str;
 }
@@ -285,7 +295,7 @@ arg_item_bool_value( arg_item* arg )
   if(arg_item_confirm_type(arg, BOOLEAN) ){
     result = arg->item->boolean;
   }else{
-{}//    printf("ERROR: the stack item does not hold boolean value. \n");
+    Rprintf("ERROR: the stack item does not hold boolean value. \n");
   }
   return result;
 }
@@ -300,7 +310,7 @@ arg_item_rexp_obj( arg_item* arg)
     pp_obj = (arg->item)->pp_rexp;
     temp_obj = *pp_obj;
   }else{
-{}//    printf("ERROR: the stack item does not hold rexp value. \n");
+    Rprintf("ERROR: the stack item does not hold rexp value. \n");
   }
   return (simple_re*) temp_obj;
 }
@@ -321,11 +331,13 @@ arg_list_free( arg_list* head)
 }
 
 // Show
+/*
 int
 arg_list_show( arg_list* head )
 {
 
 }
+*/
 
 #endif /* FUNC_HELPER_H */
 

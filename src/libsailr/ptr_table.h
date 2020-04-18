@@ -67,7 +67,7 @@ ptr_record* ptr_table_create_anonym_struct_string(ptr_table** table, struct_stri
 */
 
 ptr_record* ptr_table_create_anonym_string(ptr_table** table, string_object** strptr);
-ptr_record* ptr_table_create_string(ptr_table** table, const char* key, string_object** strptr);
+ptr_record* ptr_table_create_string_from_cstring(ptr_table** table, const char* key, const char* str);
 // (DEPRECATED) ptr_record* ptr_table_create_string_from_ptr(ptr_table** table, const char* key, string_object** strptr);
 
 string_object* ptr_table_get_ptr_string(ptr_table** table, const char* key);
@@ -80,8 +80,8 @@ int ptr_record_reset_rexp(ptr_record* pr);
 
 ptr_record* ptr_table_create_null(ptr_table** table, const char* key);
 int ptr_table_del_record(ptr_table** table, const char* key);
-int ptr_table_del_records_except(ptr_table** table, const char** keys, int key_num );
-int ptr_table_del_all(ptr_table** table);
+void ptr_table_del_records_except(ptr_table** table, const char** keys, int key_num );
+void ptr_table_del_all(ptr_table** table);
 
 void ptr_table_show_all(ptr_table** table);
 void ptr_record_show(ptr_record* pr);
@@ -98,13 +98,13 @@ void** ptr_table_get_pptr(ptr_table** table, const char* key);
 ptr_record* ptr_table_first_record(ptr_table** table);
 ptr_record* ptr_record_next(ptr_record* pr);
 
-int ptr_record_free_gc_required_memory(ptr_record*);
+void ptr_record_free_gc_required_memory(ptr_record*);
 
 // private
 ptr_record* ptr_table_find(ptr_table** table, const char* key);
 ptr_record* ptr_table_insert(ptr_table** table, ptr_record* pr);
 int ptr_record_update(ptr_record* pr, void* address, PtrType type, GCReq gc);
-int ptr_record_free(ptr_record* );
+void ptr_record_free(ptr_record* );
 int ptr_table_free(ptr_table**);
 
 bool ptr_table_points_to_header(ptr_table** table);
