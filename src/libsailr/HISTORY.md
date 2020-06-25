@@ -443,12 +443,38 @@ age2 = age
 * sprintf() is removed. snprintf() is now used to avoid warnings.
 
 
+## Ver 0.8.4
+
+* Warnings are resolved (Apr.30-May.4 2020)
+* Location information (not only line but also column number) becomes available in lex.l and parse.y. (May.6 2020)
+    + YYLTYPE* is used for this purpose.
+    + yyerror() now prints out line number and column number, when encountering syntax error.
+* When VM detects runtime errors, it now stops further execution.
+    + Currently, two mechanisms are used for this purpose. (May. 8 2020)
+        1. Function return values (1:success, 0:fail)
+        2. vm_error_raise() and vm_error_exist() in vm_error.c (available from this version)
+            + The former is more strainghtforward. The latter is useful when function calls (caller/callee relationships) are complex.
+* Corresponding script position (location) is reported when runtime error happens. (long-awaited feature!)
+    + `struct script_loc` (defined in script_loc.h) holds script location information.
+    + `struct TreeNode_` (i.e. TreeNode) and `struct _vm_inst` (i.e. vm_inst) now have location field, `struct script loc`.
+        + TreeNode's loc field is set during node construction in parse.y. 
+        + vm_inst's loc field is set during converting node tree to vm instructions in gen_code.c
+    + When runtime error is deteted in vm_exec_code in vm.c, the location is reported.
+* anonym field is added to ptr_record (=ptr_table).
+    + When anonym is set 1, the record is generated as an anonymous object (e.g. strings or regular expressions generated from literals).
+    + This enables library users to choose ptr_record's that are not assigned to varialbes (anonymous objects are not assigned to variables).
+* gc field (and ex_gc field) on ptr_record (=ptr_table) is effectively used.
+    + gc (and ex_gc field) field tells whether the object managed by the ptr_record needs to be freed (destroyed) or not when it is detached from the ptr_record.
+        + Objects are usually detached when new object is assigned or each execution finishes. At this time, based on gc field, they are freed.
+            + For this purpose, ptr_record_free_gc_required_memory() is used.
+            + ptr_record_free_gc_required_memory() becomes available also for library users via sailr_ptr_record_free_objects().
+        + Objects that come from outside of library usually need not be freed, so their gc fields are set GC_NO.
+* Variable with PTR_REXP type is now allowed to be on left hand side of assignment. This allows assigning regular expression object to variable more than once.
+    + Currently, assignment of regular expression creates new regualr expression objects. Therefore, note that this may affect performance.
+
+
 ## Plan 
 
-* Report run time error.
-    + Append line number and column number of corresponding codes to AST node.
-    + Paass the information to VM instruction.
-    + Report error with this column and line number.
 * Avoid directly manipulate ptr_table's properties. Provide functions and use them.
 * Consider some script language extension. BSD licensed language is best (e.g. Lua, mruby or Gauche??)
 * Macro to add variables for users to ptr_table.
@@ -456,13 +482,6 @@ age2 = age
         + Missing value should be added as nan in double.
 * Refactoring2
     + Functions in ptr_table.c. Pointer to pointer may be used wrongly; possibility for some local pointers are destroyed unintentionally.
-
-
-
-## Under consideration
-
-* The notion of lifetime attribute is to be added to ptr_table.
-* This works with GCReq attribute.
 
 
 ## Abandoned Ideas

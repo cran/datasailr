@@ -1,8 +1,8 @@
 Package: datasailr
 Type: Package
-Title: Fast Row by Row Data Processing Tool, Using 'Sailr' Language
-Version: 0.8.3
-Date: 2020-04-04
+Title: Fast Row by Row Data Processing Tool, Using 'Sailr' Script
+Version: 0.8.4
+Date: 2020-06-24
 Maintainer: Toshihiro Umehara <toshi@niceume.com>
 Authors@R: 
     c(person(given = "Toshihiro",
@@ -41,6 +41,10 @@ Authors@R:
              family = "Grasman",
              role = c("cph", "ctb"),
              comment = "getopt_port"),
+      person(given = "Jon",
+             family = "Clayden",
+             role = c("cph", "ctb"),
+             comment = "ore package"),
       person(given = "K.Kosako",
              role = c("cph", "ctb"),
              comment = "onigmo author"),
@@ -58,7 +62,7 @@ Authors@R:
              role = "cph"),
       person(given = "X Consortium",
              role = "cph"))
-Description: A fast row by row data processing tool. You can write data manipulation code in 'Sailr' language which is specially intended for the data manipulation. The package uses 'libsailr' (C/C++ library) for its 'Sailr' code parsing and its execution.
+Description: A fast row by row data processing tool. You can write data processing code in 'Sailr' scripting language which is specially intended for data manipulation. The package uses 'libsailr' (C/C++ library) for its 'Sailr' code parsing and its execution.
 Encoding: UTF-8
 License: GPL (>= 3)
 Biarch: true
@@ -67,7 +71,7 @@ Suggests: RUnit
 LinkingTo: Rcpp
 SystemRequirements: GNU make, C++11
 NeedsCompilation: yes
-Packaged: 2020-04-17 12:58:25 UTC; toshihiro
+Packaged: 2020-06-24 15:00:15 UTC; toshihiro
 Author: Toshihiro Umehara [aut, cre],
   Troy Hanson [cph, ctb] (uthash),
   Howard Hinnant [cph, ctb] (date.h),
@@ -77,6 +81,7 @@ Author: Toshihiro Umehara [aut, cre],
   Tomasz Kamiński [cph, ctb] (date.h),
   Nemanja Trifunovic [cph, ctb] (utfcpp),
   Kim Grasman [cph, ctb] (getopt_port),
+  Jon Clayden [cph, ctb] (ore package),
   K.Kosako [cph, ctb] (onigmo author),
   K.Takata [cph, ctb] (onigmo author),
   Byte [cph, ctb] (onigmo contributor),
@@ -85,4 +90,4 @@ Author: Toshihiro Umehara [aut, cre],
   X Consortium [cph]
 Depends: R (>= 3.5.0)
 Repository: CRAN
-Date/Publication: 2020-04-18 07:40:12 UTC
+Date/Publication: 2020-06-25 21:40:07 UTC

@@ -4,6 +4,7 @@
 #include "c_func_helper.h"
 #include "vm_stack.h"
 #include "ptr_table.h"
+#include "vm_error.h"
 
 #include <stdio.h>
 #include <limits.h>
@@ -20,13 +21,19 @@
 // int vm_stack_push_pp_str( vm_stack* , ptr_table**, char* );
 // Before pushing string, register it as an annonymous string into ptr_table.
 // ptr_record* ptr_table_create_anonym_string(ptr_table** table, string_object** strptr);
+// 
+// When error occurs, call vm_error_raise( vmstack ). 
+// Be sure that macro functions hard code the variable name, vmstack, so function parameters should include `vm_stack* vmstack` parameter.
+//
 
 #define ASSIGN_INT_VALUE( VAR , ARG_PTR , ERROR_MSG ) \
 do { \
 	if(arg_item_confirm_int( ARG_PTR )){ \
 		VAR = arg_item_int_value( ARG_PTR ); \
 	}else{ \
+		VAR = 0; /* This branch should not be executed */ \
 		Rprintf( ERROR_MSG ); \
+		vm_error_raise( vmstack ); \
 	} \
 } while (0)
 
@@ -35,7 +42,9 @@ do { \
 	if(arg_item_confirm_double( ARG_PTR )){ \
 		VAR = arg_item_double_value( ARG_PTR ); \
 	}else{ \
+		VAR = 0.0; /* This branch should not be executed */ \
 		Rprintf( ERROR_MSG ); \
+		vm_error_raise( vmstack ); \
 	} \
 } while (0)
 
@@ -44,21 +53,22 @@ do { \
 	if(arg_item_confirm_string( ARG_PTR )){ \
 		VAR = arg_item_string_obj( ARG_PTR ); \
 	}else{ \
+		VAR = NULL; /* This branch should not be executed */ \
 		Rprintf( ERROR_MSG ); \
+		vm_error_raise( vmstack ); \
 	} \
 } while (0)
 
 
 // This fucntion is used by print() and str_concat(), to concatenate multiple objects as string.
 void
-append_arg_list_as_string( string_object* new_str, arg_list* arglist)
+append_arg_list_as_string( string_object* new_str, arg_list* arglist, vm_stack* vmstack )
 {
   arg_item* argitem = arglist; 
 
   string_object* tmp_str;
   int tmp_int;
   double tmp_double;
-  const char* tmp_cstr;
   simple_re* tmp_re;
   bool tmp_bool;
 
@@ -112,11 +122,13 @@ append_arg_list_as_string( string_object* new_str, arg_list* arglist)
 int
 sailr_func_print(vm_stack* vmstack, int num_args)
 {
-  arg_num_should_be_larger_than( num_args, 0 );
+  if( ! arg_num_should_be_larger_than( num_args, 0 ) ){
+    return 0;
+  }
   arg_list* arglist = arg_list_initialize( vmstack, num_args );
   string_object* new_str = string_new("");
 
-  append_arg_list_as_string( new_str, arglist );
+  append_arg_list_as_string( new_str, arglist, vmstack);
 
   Rprintf("%s", string_read(new_str));
 
@@ -129,7 +141,9 @@ sailr_func_print(vm_stack* vmstack, int num_args)
 int
 sailr_func_num_to_str(vm_stack* vmstack, int num_args , ptr_table** table)
 {
-  arg_num_should_be( num_args, 1 );
+  if( ! arg_num_should_be( num_args, 1 ) ){
+    return 0;
+  }
   arg_list* arglist = arg_list_initialize( vmstack, num_args );
   arg_item* argitem = arglist; 
 
@@ -160,7 +174,9 @@ sailr_func_num_to_str(vm_stack* vmstack, int num_args , ptr_table** table)
 int
 sailr_func_str_func_ptr (vm_stack* vmstack, int num_args , ptr_table** table , string_object* (*str_func_ptr)(string_object*) )
 {
-  arg_num_should_be( num_args, 1 );
+  if( ! arg_num_should_be( num_args, 1 ) ){
+    return 0;
+  }
   arg_list* arglist = arg_list_initialize( vmstack, num_args );
   arg_item* argitem = arglist; 
 
@@ -204,15 +220,15 @@ sailr_func_str_rstrip( vm_stack* vmstack, int num_args, ptr_table** table )
 int
 sailr_func_str_concat( vm_stack* vmstack, int num_args, ptr_table** table )
 {
-  arg_num_should_be_larger_than( num_args, 0 );
+  if( ! arg_num_should_be_larger_than( num_args, 0 ) ){
+    return 0;
+  }
   arg_list* arglist = arg_list_initialize( vmstack, num_args );
-
-  string_object* tmp_str;
 
   string_object* p_str = string_new(""); 
   string_object** pp_str = (string_object**) malloc(sizeof(string_object*));
 
-  append_arg_list_as_string( p_str, arglist );
+  append_arg_list_as_string( p_str, arglist, vmstack );
 
   *pp_str = p_str;   // Never do "pp_str = &p_str;"
   arg_list_finalize( vmstack, num_args, arglist ); // Move sp pointer & deallocate arg_list* 
@@ -222,9 +238,12 @@ sailr_func_str_concat( vm_stack* vmstack, int num_args, ptr_table** table )
 }
 
 
-int sailr_func_str_repeat( vm_stack* vmstack, int num_args, ptr_table** table )
+int
+sailr_func_str_repeat( vm_stack* vmstack, int num_args, ptr_table** table )
 {
-  arg_num_should_be( num_args, 2 );
+  if( ! arg_num_should_be( num_args, 2 ) ){
+    return 0;
+  }
   arg_list* arglist = arg_list_initialize( vmstack, num_args );
   arg_item* argitem = arglist; 
 
@@ -252,7 +271,9 @@ int sailr_func_str_repeat( vm_stack* vmstack, int num_args, ptr_table** table )
 // Arguments for str_subset() function are one-indexed.
 int sailr_func_str_subset( vm_stack* vmstack, int num_args, ptr_table** table )
 {
-  arg_num_should_be( num_args, 3 );
+  if( ! arg_num_should_be( num_args, 3 ) ){
+    return 0;
+  }
   arg_list* arglist = arg_list_initialize( vmstack, num_args );
   arg_item* argitem = arglist; 
 
@@ -298,7 +319,9 @@ int sailr_func_str_subset( vm_stack* vmstack, int num_args, ptr_table** table )
 int
 sailr_func_str_to_num ( vm_stack* vmstack, int num_args )
 {
-  arg_num_should_be( num_args, 1 );
+  if( ! arg_num_should_be( num_args, 1 ) ){
+    return 0;
+  }
   arg_list* arglist = arg_list_initialize( vmstack, num_args );
   arg_item* argitem = arglist; 
 
@@ -334,7 +357,9 @@ sailr_func_str_to_num ( vm_stack* vmstack, int num_args )
 int
 sailr_func_rexp_matched( vm_stack* vmstack, int num_args , ptr_table** table )
 {
-  arg_num_should_be( num_args, 1 );
+  if( ! arg_num_should_be( num_args, 1 ) ){
+    return 0;
+  }
   arg_list* arglist = arg_list_initialize( vmstack, num_args );
   arg_item* argitem = arglist; 
 
@@ -364,7 +389,9 @@ sailr_func_rexp_matched( vm_stack* vmstack, int num_args , ptr_table** table )
 int
 sailr_func_date_ymd(vm_stack* vmstack, int num_args ) 
 {
-  arg_num_should_be( num_args, 3 );
+  if( ! arg_num_should_be( num_args, 3 ) ){
+    return 0;
+  }
   arg_list* arglist = arg_list_initialize( vmstack, num_args );
   arg_item* argitem = arglist; 
   
@@ -390,7 +417,9 @@ sailr_func_date_ymd(vm_stack* vmstack, int num_args )
 int
 sailr_func_date_ym_weekday_nth(vm_stack* vmstack, int num_args ) 
 {
-  arg_num_should_be( num_args, 4 );
+  if( ! arg_num_should_be( num_args, 4 ) ){
+    return 0;
+  }
   arg_list* arglist = arg_list_initialize( vmstack, num_args );
   arg_item* argitem = arglist; 
   
@@ -421,7 +450,9 @@ sailr_func_date_ym_weekday_nth(vm_stack* vmstack, int num_args )
 int
 sailr_func_date_add_n_unit(vm_stack* vmstack, int num_args, int (*add_n_unit)(int , int) ) 
 {
-  arg_num_should_be( num_args, 2 );
+  if( ! arg_num_should_be( num_args, 2 ) ){
+    return 0;
+  }
   arg_list* arglist = arg_list_initialize( vmstack, num_args );
   arg_item* argitem = arglist; 
   
@@ -461,9 +492,12 @@ sailr_func_date_add_n_days(vm_stack* vmstack, int num_args )
 
 
 
-int sailr_func_date_format(vm_stack* vmstack, int num_args , ptr_table** table )
+int
+sailr_func_date_format(vm_stack* vmstack, int num_args , ptr_table** table )
 {
-  arg_num_should_be( num_args, 2 );
+  if( ! arg_num_should_be( num_args, 2 ) ){
+    return 0;
+  }
   arg_list* arglist = arg_list_initialize( vmstack, num_args );
   arg_item* argitem = arglist; 
 
@@ -479,7 +513,10 @@ int sailr_func_date_format(vm_stack* vmstack, int num_args , ptr_table** table )
 
   ASSIGN_STRING_PTR( fmt_str , argitem , "ERROR: For 2nd argument, string shouble be specified.\n" );
 
-  p_str = string_new( simple_date_format ( unix_date, string_read(fmt_str)));
+  char* formatted_cstr = simple_date_new_cstr_format ( unix_date, string_read(fmt_str));
+  p_str = string_new( formatted_cstr );
+  free(formatted_cstr);
+
   *pp_str = p_str; // Never do "pp_str = &p_str;"
   arg_list_finalize( vmstack, num_args, arglist ); // Move sp pointer & deallocate arg_list* 
   vm_stack_push_temp_pp_str( vmstack, pp_str);

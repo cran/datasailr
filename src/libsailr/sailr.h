@@ -7,7 +7,6 @@ typedef void parser_state_object;
 typedef void vm_inst_object;
 typedef void vm_stack_object;
 typedef void string_type_object;
-typedef void parser_state_object;
 
 ptr_table_object*     sailr_ptr_table_init();
 parser_state_object*  sailr_new_parser_state(const char* , ptr_table_object* );
@@ -26,7 +25,7 @@ void                  sailr_vm_inst_code_free( vm_inst_object* vmcode );
 vm_stack_object*      sailr_vm_stack_init();
 int                   sailr_vm_stack_set_encoding(vm_stack_object* , const char*);
 const char*           sailr_vm_stack_get_encoding(vm_stack_object* );
-void                  sailr_vm_exec_code(vm_inst_object*, int, ptr_table_object*, vm_stack_object*);
+int                   sailr_vm_exec_code(vm_inst_object*, int, ptr_table_object*, vm_stack_object*);
 
 // Create
 ptr_record_object* sailr_ptr_table_create_int_from_ptr(ptr_table_object** table, const char* key, int** i_pp, double** d_pp);
@@ -40,10 +39,12 @@ ptr_record_object* sailr_ptr_table_create_null(ptr_table_object** table, const c
 // Read
 char sailr_ptr_table_get_type(ptr_table_object** table, const char* key);
 char sailr_ptr_record_get_type(ptr_record_object* pr);
+int sailr_ptr_record_is_anonym(ptr_record_object* pr);
 int sailr_ptr_record_is_ptr_null(ptr_table_object** table, const char* key);
 void** sailr_ptr_table_get_pptr(ptr_table_object** table, const char* key);
 const char* sailr_ptr_table_read_string(ptr_table_object** table, const char* key);
 
+ptr_record_object* sailr_ptr_table_find( ptr_table_object** table, const char* key );
 ptr_record_object* sailr_ptr_table_first_record(ptr_table_object** table);
 ptr_record_object* sailr_ptr_record_next(ptr_record_object* pr );
 
@@ -54,6 +55,8 @@ int sailr_ptr_table_update_int(ptr_table_object** table, const char* key, int iv
 int sailr_ptr_table_update_double(ptr_table_object** table, const char* key, double dval);
 int sailr_ptr_table_update_string(ptr_table_object** table, const char* key, string_type_object** str);
 int sailr_ptr_record_reset_rexp(ptr_record_object* pr);
+void sailr_ptr_table_free_objects(ptr_table_object** table, const char* key);
+void sailr_ptr_record_free_objects(ptr_record_object* pr);
 
 // Delete
 void sailr_ptr_table_del_records_except(ptr_table_object** table, const char** keys, int key_num );

@@ -25,6 +25,7 @@ ptr_table_init (){
 	new_ptr_record->ex_addr = (void*) NULL;
 	new_ptr_record->ex_type = PTR_NULL;
 	new_ptr_record->ex_gc = GC_NO;
+	new_ptr_record->anonym = 0;
 	ptr_table_insert(&table, new_ptr_record );
 	return table;
 }
@@ -39,8 +40,12 @@ ptr_table_add (ptr_table** table, const char* key, void** address, PtrType type,
         // Create new key/value.
         ptr_record* new_ptr_record;
         new_ptr_record = (ptr_record *)malloc(sizeof(ptr_record));
-        strncpy( new_ptr_record->key , key, MAX_KEY_LEN ) ;
-        new_ptr_record->key[ MAX_KEY_LEN - 1] = '\0';
+        if( (strlen(key) + 1 ) <= MAX_KEY_LEN ){
+            strcpy( new_ptr_record->key , key);
+        }else{
+            memcpy( new_ptr_record->key , key, MAX_KEY_LEN );
+            new_ptr_record->key[ MAX_KEY_LEN - 1] = '\0';
+        }
         if(type != PTR_NULL){
             new_ptr_record->address = *address;
         }else{
@@ -52,6 +57,7 @@ ptr_table_add (ptr_table** table, const char* key, void** address, PtrType type,
         new_ptr_record->ex_addr = NULL;
         new_ptr_record->ex_type = PTR_NULL;
         new_ptr_record->ex_gc = GC_NO ; 
+        new_ptr_record->anonym = 0;
         // Insert new ptr_record on ptr_table
         ptr_table_insert( table, new_ptr_record );
         result = new_ptr_record;
@@ -169,24 +175,35 @@ ptr_record_swap_addresses(ptr_record* pr)
 
 char*
 create_new_str_key(ptr_table** table){
-	char* new_str = (char *)malloc(sizeof(char)*16);
+	char* new_str = (char *)malloc(sizeof(char)* ANONYM_KEY_WIDTH );
 	ptr_table_info* info = (ptr_table_info*) ((*table)->address) ;
 	info->str_counter = (info->str_counter) + 1;
-    const char* prefix = "STR%012d";
-	sprintf(new_str, prefix , info->str_counter);
+    const char* prefix = "STR%0*d";
+	sprintf(new_str, prefix , ANONYM_KEY_WIDTH -3 -1 ,info->str_counter);
 	return new_str ; 
 }
 
 char*
 create_new_rexp_key(ptr_table** table){
-	char* new_str = (char *)malloc(sizeof(char)*16);
+	char* new_str = (char *)malloc(sizeof(char)* ANONYM_KEY_WIDTH );
 	ptr_table_info* info = (ptr_table_info*) ((*table)->address) ;
 	info->rexp_counter = (info->rexp_counter) + 1;
-    const char* prefix = "REXP%011d";
-	sprintf(new_str, prefix , info->rexp_counter);
+    const char* prefix = "REXP%0*d";
+	sprintf(new_str, prefix , ANONYM_KEY_WIDTH -4 -1 , info->rexp_counter);
 	return new_str ; 
 }
 
+void
+ptr_record_set_anonym( ptr_record* pr, int val)
+{
+	pr->anonym = val;
+}
+
+int
+ptr_record_get_anonym( ptr_record* pr)
+{
+	return pr->anonym;
+}
 
 ptr_record*
 ptr_table_create_anonym_string(ptr_table** table, string_object** strptr)
@@ -195,6 +212,7 @@ ptr_table_create_anonym_string(ptr_table** table, string_object** strptr)
 	new_key = create_new_str_key(table);
 	ptr_record* new_ptr_record;
 	new_ptr_record = ptr_table_add(table, new_key, (void**)strptr, PTR_STR, GC_YES);
+	ptr_record_set_anonym( new_ptr_record, 1);
 	free(new_key);
 	return new_ptr_record ;
 }
@@ -271,6 +289,7 @@ ptr_table_create_anonym_rexp(ptr_table** table, const char* pattern, const char*
 	new_re = simple_re_compile( pattern, enc );
 	ptr_record* new_ptr_record;
 	new_ptr_record = ptr_table_add(table, new_key, (void**) &new_re, PTR_REXP, GC_YES);
+	ptr_record_set_anonym( new_ptr_record, 1);
 	free(new_key);
 	return new_ptr_record ;
 }
@@ -325,6 +344,7 @@ ptr_record_free_gc_required_memory(ptr_record* pr)
 				break;
 		}
 		pr->address = NULL;
+		pr->gc = GC_NO;
 	}	
 	if(pr->ex_gc == GC_YES){
 		switch( pr->ex_type ){	
@@ -348,6 +368,7 @@ ptr_record_free_gc_required_memory(ptr_record* pr)
 				break;
 		}
 		pr->ex_addr = NULL;
+		pr->ex_gc = GC_NO;
 	}
 }
 
@@ -465,32 +486,55 @@ void
 ptr_record_show(ptr_record* pr)
 {
 		if(pr->type == PTR_INT){
-        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%d\t (EXTR_ADR:%p\t TYPE:%d\t GC:%d\t VAL:%lf) \n", 
-			pr->key, pr->address, pr->type, pr->gc, *((int*)(pr->address)),
-			pr->ex_addr, pr->ex_type, pr->ex_gc, *((double*)(pr->ex_addr)) );
+			if( pr->address != NULL ){
+	        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%d\t (EXTR_ADR:%p\t TYPE:%d\t GC:%d\t VAL:%lf) [Anonym:%d]\n", 
+				pr->key, pr->address, pr->type, pr->gc, *((int*)(pr->address)),
+				pr->ex_addr, pr->ex_type, pr->ex_gc, *((double*)(pr->ex_addr)), pr->anonym );
+			}else{
+	        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:(NULL)\t (EXTR_ADR:%p\t TYPE:%d\t GC:%d\t VAL:(NULL)) [Anonym:%d]\n", 
+				pr->key, pr->address, pr->type, pr->gc,
+				pr->ex_addr, pr->ex_type, pr->ex_gc, pr->anonym );
+			}
 		}else if(pr->type == PTR_DBL){
-        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%lf\t (EXTR_ADR:%p\t TYPE:%d\t GC:%d\t VAL:%d)\n", 
-			pr->key, pr->address, pr->type, pr->gc, *((double*)(pr->address)),
-			pr->ex_addr, pr->ex_type, pr->ex_gc, *((int*)(pr->ex_addr)));
+			if( pr->address != NULL ){
+	        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%lf\t (EXTR_ADR:%p\t TYPE:%d\t GC:%d\t VAL:%d) [Anonym:%d]\n", 
+				pr->key, pr->address, pr->type, pr->gc, *((double*)(pr->address)),
+				pr->ex_addr, pr->ex_type, pr->ex_gc, *((int*)(pr->ex_addr)), pr->anonym);
+			}else{
+	        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:(NULL)\t (EXTR_ADR:%p\t TYPE:%d\t GC:%d\t VAL:(NULL)) [Anonym:%d]\n", 
+				pr->key, pr->address, pr->type, pr->gc, 
+				pr->ex_addr, pr->ex_type, pr->ex_gc, pr->anonym );
+			}
 		}else if(pr->type == PTR_STR){
-        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%s\t (EXTR_ADR:%p (Not used for string))\n", 
-			pr->key, pr->address, pr->type, pr->gc, string_read((string_object*)(pr->address)),
-			pr->ex_addr );
+			if( pr->address != NULL ){
+				Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%s\t (EXTR_ADR:%p (Not used for string)) [Anonym:%d]\n", 
+				pr->key, pr->address, pr->type, pr->gc, string_read((string_object*)(pr->address)),
+				pr->ex_addr, pr->anonym );
+			}else{
+				Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:(NULL)\t (EXTR_ADR:%p (Not used for string)) [Anonym:%d]\n", 
+				pr->key, pr->address, pr->type, pr->gc, pr->ex_addr, pr->anonym );
+			}
 		}else if(pr->type == PTR_REXP){
-        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%s\t (EXTR_ADR:%p)\n", 
-			pr->key, pr->address, pr->type, pr->gc, simple_re_read_pattern((simple_re*)(pr->address)),
-			pr->ex_addr );
+			if( pr->address != NULL ){
+        		Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:%s\t (EXTR_ADR:%p) [Anonym:%d]\n", 
+				pr->key, pr->address, pr->type, pr->gc, simple_re_read_pattern((simple_re*)(pr->address)),
+				pr->ex_addr, pr->anonym );
+			}else{
+        		Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t VAL:(NULL)\t (EXTR_ADR:%p) [Anonym:%d]\n", 
+				pr->key, pr->address, pr->type, pr->gc, 
+				pr->ex_addr, pr->anonym );
+			}
 		}else if(pr->type == PTR_NULL){
-        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t (EXTR_ADR:%p) \n", 
-			pr->key, pr->address, pr->type, pr->gc, pr->ex_addr);
+        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t (EXTR_ADR:%p) [Anonym:%d]\n", 
+			pr->key, pr->address, pr->type, pr->gc, pr->ex_addr, pr->anonym);
 		}else if(pr->type == PTR_INFO){
-        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%s\t GC:%d\t (EXTR_ADR:%p) ", 
+        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%s\t GC:%d\t (EXTR_ADR:%p)", 
 			pr->key, pr->address, "INFO" , pr->gc, pr->ex_addr);
 			ptr_table_info* pti = (ptr_table_info*) (pr->address);
 			Rprintf("\t str_counter %d, rexp_counter %d, null_updated %d \n", pti->str_counter, pti->rexp_counter, pti->null_updated);
 		}else{
-        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t (EXTR_ADR:%p) \n", 
-			pr->key, pr->address, pr->type, pr->gc,	pr->ex_addr);
+        	Rprintf("KEY:%s\t ADR:%p\t TYPE:%d\t GC:%d\t (EXTR_ADR:%p) [Anonym:%d]\n", 
+			pr->key, pr->address, pr->type, pr->gc,	pr->ex_addr, pr->anonym);
 		}
 }
 
@@ -499,7 +543,7 @@ ptr_table*
 ptr_record_obtain_table(ptr_record* pr)
 {
 	ptr_record* temp ;
-	ptr_record* pre_temp;
+	ptr_record* pre_temp = NULL;
 	ptr_table** table;
 
     for( temp = pr ; temp != NULL; temp = (ptr_record*) (temp->hh.prev)) {
@@ -514,6 +558,7 @@ ptr_record_obtain_table(ptr_record* pr)
 	}
 }
 
+/*
 int
 ptr_table_info_set_null_updated(ptr_table** table, int updated_value)
 {
@@ -527,13 +572,14 @@ ptr_table_info_set_null_updated(ptr_table** table, int updated_value)
 		return 0;
 	}
 }
+*/
 
 int
 ptr_table_info_change_null_updated_by_type(ptr_table** table, PtrType type)
 {
 	ptr_record* pr;
-	int current_null_updated;
-    int bitmask;
+	unsigned int current_null_updated;
+	unsigned int bitmask;
 	if(ptr_table_points_to_header(table)){
 		pr = (ptr_record*) *table;
 		current_null_updated = ((ptr_table_info*) (pr->address))->null_updated ;
@@ -544,6 +590,7 @@ ptr_table_info_change_null_updated_by_type(ptr_table** table, PtrType type)
 			DEBUG_PRINT( "new type is %d, new bitmask is %d \n", type, bitmask);
 			DEBUG_PRINT( "current null_update value is %d, new value is %d \n", current_null_updated, (current_null_updated | bitmask));
 		}else{
+			bitmask = 0 ; // This branch should never be executed.
 			Rprintf("ERROR: Null may be converted to unintentional type on ptr_table." );
 		}
 		((ptr_table_info*) (pr->address))->null_updated = current_null_updated | bitmask ;

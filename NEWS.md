@@ -1,5 +1,15 @@
 # HISTORY
 
+## Version 0.8.4
+
+* Cross-platform compilation is improved.
+* The core processing library, libsailr has become able to report runtime errors with correspoding script location, and DataSailr supports it.
+* Fixes
+    + Variables that appear only on RHS of script crashed the program, which is fixed and the program stops safely.
+    + String objects and regular expression objects were not freed in some cases. Memory leaks are fixed. 
+    + NA in StringVector is treated as NULL, which results in passing an empty string to libsailr.
+
+
 ## Version 0.8.3
 
 * Memory leaks fixed at various points that are pointed out after CRAN submission. (Apr.5-13 2020)

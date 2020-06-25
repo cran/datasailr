@@ -237,6 +237,7 @@ arg_item_int_value( arg_item* arg )
   }else if (arg_item_confirm_type(arg, PP_IVAL) ){
     value = **(arg->item->pp_ival);
   }else{
+    value = 0; // This branch should never be executed.
     Rprintf("ERROR: the stack item does not hold int value. \n");
   }
   return value;
@@ -252,6 +253,7 @@ arg_item_double_value( arg_item* arg )
   }else if (arg_item_confirm_type(arg, PP_DVAL) ){
     value = **(arg->item->pp_dval);
   }else{
+    value = 0.0; // This branch should never be executed.
     Rprintf("ERROR: the stack item does not hold double value. \n");
 
   }

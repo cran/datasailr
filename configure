@@ -624,6 +624,7 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+needs_nullptr_support_flag
 add_r_include_path
 add_onigmo_lib_path
 add_onigmo_include_path
@@ -2145,9 +2146,9 @@ CXX11=`"${R_HOME}/bin/R" CMD config CXX11`
   if test -z "$CXX11"; then
   as_fn_error $? "No C++11 compiler is available" "$LINENO" 5
 fi
-# CXX11STD=`"${R_HOME}/bin/R" CMD config CXX11STD`
-# CXX="${CXX11} ${CXX11STD}"
-# CXXFLAGS=`"${R_HOME}/bin/R" CMD config CXX11FLAGS`
+CXX11STD=`"${R_HOME}/bin/R" CMD config CXX11STD`
+CXX="${CXX11} ${CXX11STD}"
+CXXFLAGS=`"${R_HOME}/bin/R" CMD config CXX11FLAGS`
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -4285,6 +4286,18 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
+# AR & RANLIB
+AR=`"${R_HOME}/bin/R" CMD config AR`
+RANLIB=`"${R_HOME}/bin/R" CMD config RANLIB`
+pattern='ERROR*'
+case "$RANLIB" in
+    $pattern) echo 'RANLIB variable is not set on this machine by default. Setting it to "ar -s"'
+        RANLIB="ar -s"
+        ;;
+    *)  ;;
+esac
+echo $RANLIB
+
 # Make
 MAKE=`"${R_HOME}/bin/R" CMD config MAKE`
 
@@ -4324,6 +4337,9 @@ fi
 
 # I would like to find path for for include and lib of onigmo.
 # set those pathes to onigmo_include_dir and onigmo_lib_dir
+
+# Onigmo uses libtool for its compilation. For static library building, LDFLAGS="-static" is passed only to make, not to ./configure.
+# (ref.) srd's answer in https://stackoverflow.com/questions/20068947/how-to-static-link-linux-software-that-uses-configure
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for grep that handles long lines and -e" >&5
@@ -4691,13 +4707,12 @@ elif test "$which_onigmo" = "PACKAGE" ; then :
   fi
   if test -f "${current_path}/src/Onigmo/configure" ; then
 	eval "mkdir -p ${current_path}/src/Onigmo/build"
-    eval 'cd ${current_path}/src/Onigmo/; ./configure --prefix=${current_path}/src/Onigmo/build CC="${CC}" CFLAGS="${CPICFLAGS} ${CFLAGS} ${CPPFLAGS}" CXX="${CXX}" ARLIB="${AR}" ARDLL="${CC}" RANLIB="${RANLIB}" RC="${RESCOMP}"; cd  ${current_path};'
+    eval 'cd ${current_path}/src/Onigmo/; ./configure --prefix=${current_path}/src/Onigmo/build CC="${CC}" CFLAGS="${CPICFLAGS} ${CFLAGS} ${CPPFLAGS} -DUNALIGNED_WORD_ACCESS=0 " CXX="${CXX}" ARLIB="${AR}" ARDLL="${CC}" RANLIB="${RANLIB}" ; cd  ${current_path};'
     echo "${current_path}/src/Onigmo/configure is successfully executed."
-    eval '${MAKE} --directory ${current_path}/src/Onigmo/'
+    eval '${MAKE} --directory ${current_path}/src/Onigmo/  LDFLAGS="-static"'
     eval "${MAKE} install --directory ${current_path}/src/Onigmo/"
     echo "${MAKE} is successfully executed."
-    eval "rm ${current_path}/src/Onigmo/build/lib/libonigmo.so"
-	echo "dynamic library of onigmo is deleted"
+	echo "only static library is generated."
   else
     as_fn_error $? "\"${current_path}/src/Onigmo/configure is not found in this package.\"" "$LINENO" 5
   fi
@@ -4708,7 +4723,49 @@ else
    as_fn_error $? "\"Which onigmo library to use, PACKAGE, SYSTEM or USER? \"" "$LINENO" 5
 fi
 
+# Check C++ nullptr availability
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C++11 nullptr is available" >&5
+$as_echo_n "checking whether C++11 nullptr is available... " >&6; }
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+ char *str = nullptr; if(str){};
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+else
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+    needs_nullptr_support_flag='-DNEEDS_NULLPTR_SUPPORT'
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
 # Export the following shell variables as substitute variales.
+
 
 
 

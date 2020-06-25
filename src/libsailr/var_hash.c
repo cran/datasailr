@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdio.h>
 
+// For ptrdiff_t related definitions
+#include <stdint.h>
+
 #include "var_hash.h"
 
 var_hash*
@@ -70,7 +73,14 @@ var_hash_names(var_hash** hash)
 //		printf("No variables.\n");
 		return NULL;
 	}
-	char** hash_names = (char**) malloc(hash_size * sizeof(char*));
+
+	char** hash_names;
+	if( hash_size < PTRDIFF_MAX / sizeof(char*)){
+		hash_names = (char**) malloc( hash_size * sizeof(char*));
+	}else {
+		Rprintf("ERROR: hash size is too large");
+		return NULL;
+	}
 
 	int idx = 0; 
 	var_elem* elem;

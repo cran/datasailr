@@ -20,9 +20,9 @@ CXX11=`"${R_HOME}/bin/R" CMD config CXX11`
   if test -z "$CXX11"; then
   AC_MSG_ERROR([No C++11 compiler is available])
 fi
-# CXX11STD=`"${R_HOME}/bin/R" CMD config CXX11STD`
-# CXX="${CXX11} ${CXX11STD}"
-# CXXFLAGS=`"${R_HOME}/bin/R" CMD config CXX11FLAGS`
+CXX11STD=`"${R_HOME}/bin/R" CMD config CXX11STD`
+CXX="${CXX11} ${CXX11STD}"
+CXXFLAGS=`"${R_HOME}/bin/R" CMD config CXX11FLAGS`
 AC_LANG(C++)
 AC_REQUIRE_CPP
 AC_PROG_CXX
@@ -35,6 +35,18 @@ CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
 AC_LANG(C)
 AC_REQUIRE_CPP
 AC_PROG_CC
+
+# AR & RANLIB
+AR=`"${R_HOME}/bin/R" CMD config AR`
+RANLIB=`"${R_HOME}/bin/R" CMD config RANLIB`
+pattern='ERROR*'
+case "$RANLIB" in
+    $pattern) echo 'RANLIB variable is not set on this machine by default. Setting it to "ar -s"'
+        RANLIB="ar -s"
+        ;;
+    *)  ;;
+esac
+echo $RANLIB
 
 # Make
 MAKE=`"${R_HOME}/bin/R" CMD config MAKE`
@@ -74,6 +86,9 @@ AC_ARG_WITH([system-onigmo],
 # I would like to find path for for include and lib of onigmo.
 # set those pathes to onigmo_include_dir and onigmo_lib_dir
 
+# Onigmo uses libtool for its compilation. For static library building, LDFLAGS="-static" is passed only to make, not to ./configure.
+# (ref.) srd's answer in https://stackoverflow.com/questions/20068947/how-to-static-link-linux-software-that-uses-configure
+
 
 AS_IF( [test "$which_onigmo" = "USER"],
   [
@@ -111,13 +126,12 @@ AS_IF( [test "$which_onigmo" = "USER"],
   fi
   if test -f "${current_path}/src/Onigmo/configure" ; then
 	eval "mkdir -p ${current_path}/src/Onigmo/build"
-    eval 'cd ${current_path}/src/Onigmo/; ./configure --prefix=${current_path}/src/Onigmo/build CC="${CC}" CFLAGS="${CPICFLAGS} ${CFLAGS} ${CPPFLAGS}" CXX="${CXX}" ARLIB="${AR}" ARDLL="${CC}" RANLIB="${RANLIB}" RC="${RESCOMP}"; cd  ${current_path};'
+    eval 'cd ${current_path}/src/Onigmo/; ./configure --prefix=${current_path}/src/Onigmo/build CC="${CC}" CFLAGS="${CPICFLAGS} ${CFLAGS} ${CPPFLAGS} -DUNALIGNED_WORD_ACCESS=0 " CXX="${CXX}" ARLIB="${AR}" ARDLL="${CC}" RANLIB="${RANLIB}" ; cd  ${current_path};'
     echo "${current_path}/src/Onigmo/configure is successfully executed."
-    eval '${MAKE} --directory ${current_path}/src/Onigmo/'
+    eval '${MAKE} --directory ${current_path}/src/Onigmo/  LDFLAGS="-static"'
     eval "${MAKE} install --directory ${current_path}/src/Onigmo/"
     echo "${MAKE} is successfully executed."
-    eval "rm ${current_path}/src/Onigmo/build/lib/libonigmo.so"
-	echo "dynamic library of onigmo is deleted"
+	echo "only static library is generated."
   else
     AC_MSG_ERROR("${current_path}/src/Onigmo/configure is not found in this package.")
   fi
@@ -126,10 +140,26 @@ AS_IF( [test "$which_onigmo" = "USER"],
   ],
   [ AC_MSG_ERROR(["Which onigmo library to use, PACKAGE, SYSTEM or USER? "])])
 
+# Check C++ nullptr availability
+AC_MSG_CHECKING([whether C++11 nullptr is available])
+AC_LANG_PUSH([C++])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM(
+    [[  ]],
+    [[ char *str = nullptr; if(str){};]]
+  )],[
+    AC_MSG_RESULT([yes])
+  ],[
+    AC_MSG_RESULT([no])
+    needs_nullptr_support_flag='-DNEEDS_NULLPTR_SUPPORT'
+  ])
+AC_LANG_POP([C++])
+
 # Export the following shell variables as substitute variales.
 AC_SUBST([add_onigmo_include_path])
 AC_SUBST([add_onigmo_lib_path])
 AC_SUBST([add_r_include_path])
+AC_SUBST([needs_nullptr_support_flag])
 
 # create and report output
 AC_CONFIG_FILES([src/Makevars])

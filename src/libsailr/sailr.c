@@ -164,10 +164,10 @@ sailr_vm_inst_code_free( vm_inst_object* vmcode )
   free( (vm_inst*) vmcode );
 }
 
-void
+int
 sailr_vm_exec_code( vm_inst_object* code , int num_insts , ptr_table_object* table , vm_stack_object* vmstack)
 {
-	vm_exec_code((vm_inst*)code, num_insts, (ptr_table*)table, (vm_stack*)vmstack);
+	return vm_exec_code((vm_inst*)code, num_insts, (ptr_table*)table, (vm_stack*)vmstack);
 }
 
 ptr_record_object*
@@ -250,6 +250,16 @@ sailr_ptr_record_get_type(ptr_record_object* pr)
 	}
 }
 
+int
+sailr_ptr_record_is_anonym(ptr_record_object* pr)
+{
+	if( ptr_record_get_anonym((ptr_record*) pr) == 1 ){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
 int sailr_ptr_record_is_ptr_null(ptr_table_object** table, const char* key)
 {
 	return ptr_record_is_ptr_null((ptr_table**) table, key);
@@ -270,6 +280,12 @@ sailr_ptr_table_get_pptr(ptr_table_object** table, const char* key)
 const char*
 sailr_ptr_table_read_string(ptr_table_object** table, const char* key){
   return  ptr_table_read_string((ptr_table**)table, key);
+}
+
+ptr_record_object*
+sailr_ptr_table_find( ptr_table_object** table, const char* key )
+{
+	return (ptr_record_object*) ptr_table_find((ptr_table**) table, key);
 }
 
 ptr_record_object*
@@ -308,6 +324,19 @@ int
 sailr_ptr_record_reset_rexp(ptr_record_object* pr)
 {
 	return ptr_record_reset_rexp((ptr_record*) pr);
+}
+
+void
+sailr_ptr_table_free_objects(ptr_table_object** table, const char* key)
+{
+	ptr_record* record = ptr_table_find((ptr_table**) table, key);
+	ptr_record_free_gc_required_memory(record);
+}
+
+void
+sailr_ptr_record_free_objects(ptr_record_object* pr)
+{
+	ptr_record_free_gc_required_memory(pr);
 }
 
 void

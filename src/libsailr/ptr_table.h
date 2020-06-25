@@ -9,6 +9,7 @@
 #include <stdbool.h>
 
 #define MAX_KEY_LEN 511
+#define ANONYM_KEY_WIDTH 16
 
 enum _PtrType{
 	PTR_INT = 0,
@@ -36,6 +37,7 @@ struct _ptr_record {
 	void* ex_addr; 
 	PtrType ex_type;
 	GCReq ex_gc; 
+	int anonym; /* When the record is created to be anonymous, this is set to be 1. Otherwise 0. */
 	UT_hash_handle hh; /* This macro makes this structure hashable */
 };
 typedef struct _ptr_record ptr_record ;
@@ -44,7 +46,7 @@ typedef ptr_record ptr_table;
 struct _ptr_table_info {
 	int str_counter;
 	int rexp_counter;
-	int null_updated;
+	unsigned int null_updated;
 };
 typedef struct _ptr_table_info ptr_table_info ;
 
@@ -62,9 +64,9 @@ int ptr_table_update_double(ptr_table** table, const char* key, double dval);
 int ptr_record_update_extra_address(ptr_record* pr, void** ptr_ex_addr, PtrType ex_type, GCReq ex_gc );
 int ptr_record_swap_addresses(ptr_record* pr);
 
-/*
-ptr_record* ptr_table_create_anonym_struct_string(ptr_table** table, struct_string** strptr);
-*/
+
+void ptr_record_set_anonym( ptr_record* pr, int val);
+int ptr_record_get_anonym( ptr_record* pr);
 
 ptr_record* ptr_table_create_anonym_string(ptr_table** table, string_object** strptr);
 ptr_record* ptr_table_create_string_from_cstring(ptr_table** table, const char* key, const char* str);
@@ -86,7 +88,7 @@ void ptr_table_del_all(ptr_table** table);
 void ptr_table_show_all(ptr_table** table);
 void ptr_record_show(ptr_record* pr);
 ptr_table* ptr_record_obtain_table(ptr_record* pr);
-int ptr_table_info_set_null_updated(ptr_table** table, int updated_value);
+// int ptr_table_info_set_null_updated(ptr_table** table, int updated_value);
 int ptr_table_info_change_null_updated_by_type(ptr_table** table, PtrType type);
 int ptr_table_info_get_null_updated(ptr_table** table);
 int ptr_table_info_reset_null_updated(ptr_table** table);
@@ -100,8 +102,9 @@ ptr_record* ptr_record_next(ptr_record* pr);
 
 void ptr_record_free_gc_required_memory(ptr_record*);
 
-// private
 ptr_record* ptr_table_find(ptr_table** table, const char* key);
+
+// private
 ptr_record* ptr_table_insert(ptr_table** table, ptr_record* pr);
 int ptr_record_update(ptr_record* pr, void* address, PtrType type, GCReq gc);
 void ptr_record_free(ptr_record* );

@@ -46,7 +46,8 @@ simple_date_ym_weekday_nth( int int_y, unsigned int int_m, const char* c_wd , un
   }else if( strcmp( str, "SAT" ) == 0 ){
     int_wd = 6;
   }else{
-     Rprintf("ERROR: Specified symbol is not valid for weekday. %s\n", str );
+    int_wd = 0; // This branch should never be executed.
+    Rprintf("ERROR: Specified symbol is not valid for weekday. %s\n", str );
   }
   return cpp_date_ym_weekday_nth( int_y, int_m, int_wd, int_nth); 
 }
@@ -69,9 +70,9 @@ simple_date_add_n_days( int unix_date , int days )
   return cpp_date_add_n_days( unix_date , days );
 }
 
-const char*
-simple_date_format ( int unix_date, const char* fmt  )
+char*
+simple_date_new_cstr_format ( int unix_date, const char* fmt  )
 {
-  return cpp_date_format ( unix_date, fmt );
+  return cpp_date_new_cstr_format ( unix_date, fmt );
 }
 
