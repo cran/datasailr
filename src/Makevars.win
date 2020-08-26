@@ -8,11 +8,13 @@ ONIGMO_INSTALL=$(ONIGMO_PROJ_NAME)/_BUILD
 ONIGMO_LIB=$(ONIGMO_INSTALL)/lib
 ONIGMO_INCLUDE=$(ONIGMO_INSTALL)/include
 
-PKG_CXXFLAGS=-Ilibsailr  # Option for compiler
+PKG_CXXFLAGS=-Ilibsailr -I$(ONIGMO_PROJ_NAME) # Option for compiler
 PKG_LIBS = $(LDFLAGS) -Llibsailr -lsailr -L$(ONIGMO_LIB) -l:libonigmo.a -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic
 # Note: -lxxx looks up for libraries in an order of libxxx.so and libxxx.a
 # Note: -l:libyyy.a directly looks up for the library with the filename of libyyy.a
 # https://stackoverflow.com/questions/6578484/telling-gcc-directly-to-link-a-library-statically
+
+PKG_CFLAGS=-Ilibsailr -I$(ONIGMO_PROJ_NAME) @add_r_include_path@ 
 
 REQUIRE_AUTOTOOLS=NO
 src_dir=$(strip $(shell pwd))
@@ -22,7 +24,7 @@ src_dir=$(strip $(shell pwd))
 # https://stackoverflow.com/questions/17133550/building-shared-libraries-in-subdirectories
 
 
-.PHONY: all libsailr/libsailr.a
+.PHONY: all
 
 all: $(SHLIB)
 $(SHLIB): libsailr/libsailr.a
@@ -30,8 +32,8 @@ $(SHLIB): libsailr/libsailr.a
 libsailr/libsailr.a: $(ONIGMO_LIB)/onigmo.a
 	@echo "compiling libsailr engine."
 	$(MAKE) build --directory libsailr CC="$(CC)" \
-                              CFLAGS="$(CFLAGS) $(CPICFLAGS) -I. -Ivm -Istring -Isimple_re -Isimple_date  -I../$(ONIGMO_INCLUDE) @add_r_include_path@  " \
-                              CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS) $(CPICFLAGS) -Ivm -Istring" \
+                              CFLAGS="$(CFLAGS) $(CPICFLAGS) -I. -I../$(ONIGMO_INCLUDE) @add_r_include_path@  " \
+                              CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS) $(CPICFLAGS) -I. -Istring" \
                               AR="$(AR) rvs" 
 
 

@@ -1,4 +1,0 @@
-univ = "Univ"
-dot = "dot"
-name = "Tokyo"
-result = univ + dot + name

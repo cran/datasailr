@@ -9,6 +9,7 @@
 // 1. Stack manipulation
 // 2. Calculation
 
+#include "vm.h"
 #include "vm_cmd.h"
 #include "vm_code.h"
 #include "vm_stack.h"
@@ -19,13 +20,13 @@
 
 #include "script_loc.h"
 
-int vm_run_inst (vm_inst* , ptr_table* , vm_stack* );
+int vm_run_inst (vm_inst* , ptr_table* , vm_stack* , ext_func_hash* );
 
 int
-vm_exec_code( vm_inst* code , int num_insts , ptr_table* table , vm_stack* vmstack)
+vm_exec_code( vm_inst* code , int num_insts , int start_inst_idx, ptr_table* table , vm_stack* vmstack, ext_func_hash* extfunc_hash )
 {
-	int exec_result = 1; // success 1, fail 0
-	int inst_idx = 0;
+	int exec_result = 1; // 0:fail, 1:success, 2:suspend
+	int inst_idx = start_inst_idx;
 	int move_forward = 0;	
 	stack_item* top_item;
 	vm_inst* inst;
@@ -63,9 +64,12 @@ vm_exec_code( vm_inst* code , int num_insts , ptr_table* table , vm_stack* vmsta
 		}else {
 			DEBUG_PRINT("----- VM INSTRUCTION ----- \n");
 			DEBUG_PRINT("%s(%d/%d)\n", vm_cmd_to_string(inst->cmd), inst_idx, num_insts);
-			exec_result = vm_run_inst(inst, table , vmstack);
+			exec_result = vm_run_inst(inst, table , vmstack, extfunc_hash);
 			if(exec_result == 0){ // fail
 				Rprintf("ERROR: current vm instruction causing some problem.\n");
+				break;
+			}else if(exec_result == 2){ // suspend
+				vm_stack_set_code_position(vmstack, inst_idx + 1 ); // Set next code postion, which is important to resume
 				break;
 			}
 		}
@@ -89,9 +93,10 @@ vm_exec_code( vm_inst* code , int num_insts , ptr_table* table , vm_stack* vmsta
 }
 
 int
-vm_run_inst (vm_inst* inst, ptr_table* table, vm_stack* vmstack )
+vm_run_inst (vm_inst* inst, ptr_table* table, vm_stack* vmstack , ext_func_hash* extfunc_hash )
 {
 	int result = 1;
+	ext_func_elem* ext_func = NULL;
 	switch (inst->cmd){
 	case VM_PUSH_IVAL:
 		result = vm_stack_push_ival(vmstack, inst->ival);
@@ -141,7 +146,14 @@ vm_run_inst (vm_inst* inst, ptr_table* table, vm_stack* vmstack )
 		result = vm_stack_store_val(vmstack);
 		break;
 	case VM_FCALL:
-		result = vm_stack_fcall(vmstack, inst->fname, inst->num_arg, &table );
+		if( (extfunc_hash != NULL) && (ext_func = ext_func_hash_find(&extfunc_hash, inst->fname))){
+			DEBUG_PRINT("External function is to be executed. \n");
+			DEBUG_PRINT("External function pointer: %p \n", ext_func);
+			result = ext_func_elem_apply(&extfunc_hash, ext_func, vmstack);
+		}else{
+			DEBUG_PRINT("Internal function is to be executed.");
+			result = vm_stack_fcall(vmstack, inst->fname, inst->num_arg, &table );
+		}
 		break;
 	case VM_ADDX:
 		result = vm_calc_addx(vmstack, &table);

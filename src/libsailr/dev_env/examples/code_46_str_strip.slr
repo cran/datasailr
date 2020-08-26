@@ -1,6 +1,0 @@
-greeting = "    KONNICHIWA    ";
-
-print( str_concat( "strip -----", str_strip(greeting), "-----" ))
-print( str_concat( "lstrip-----", str_lstrip(greeting), "-----" ))
-print( str_concat( "rstrip-----", str_rstrip(greeting), "-----" ))
-print( str_concat( "origin-----", greeting, "-----" ))

@@ -1,8 +1,0 @@
-a = 11
-b = "Hello"
-
-c = a * b
-
-print("Is this error?") 
-
-

@@ -434,7 +434,7 @@ static const YY_CHAR yy_ec[256] =
 
 static const YY_CHAR yy_meta[47] =
     {   0,
-        1,    1,    2,    1,    1,    1,    1,    1,    1,    1,
+        1,    1,    2,    1,    3,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    3,    4,    3,    3,    1,
         1,    1,    1,    3,    1,    1,    3,    3,    3,    3,
         3,    3,    3,    3,    3,    3,    1,    1,    1,    1,
@@ -598,7 +598,7 @@ static const flex_int32_t yy_rule_can_match_eol[60] =
 #include <ctype.h>
 
 #include "parser_state.h"
-#include "common_string.h"
+#include "string/common_string.h"
 #include "node.h"
 
 

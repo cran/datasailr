@@ -2,8 +2,8 @@
 #include "ptr_table.h"
 #include <stdio.h>
 #include <string.h>
-#include "common_string.h"
-#include "simple_re.h"
+#include "string/common_string.h"
+#include "simple_re/simple_re.h"
 #include "helper.h"
 
 
@@ -94,7 +94,8 @@ int
 ptr_table_update_int(ptr_table** table, const char* key, int ival)
 {
 	ptr_record* result = ptr_table_find(table, key);
-	memcpy((int*) result->address , &ival, sizeof(int));
+	int* p_int = (int*) result->address;
+	*p_int = ival;
 	return 1;
 }
 
@@ -138,7 +139,8 @@ int
 ptr_table_update_double(ptr_table** table, const char* key, double dval)
 {
 	ptr_record* result = ptr_table_find(table, key);
-	memcpy((double*) result->address , &dval, sizeof(double));
+	double* p_dbl = (double*) result->address;
+	*p_dbl = dval;
 	return 1;
 }
 

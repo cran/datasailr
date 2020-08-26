@@ -1,8 +1,8 @@
 Package: datasailr
 Type: Package
-Title: Fast Row by Row Data Processing Tool, Using 'Sailr' Script
-Version: 0.8.5
-Date: 2020-07-03
+Title: Row by Row Data Processing Tool, Using 'Sailr' Script
+Version: 0.8.6
+Date: 2020-08-25
 Maintainer: Toshihiro Umehara <toshi@niceume.com>
 Authors@R: 
     c(person(given = "Toshihiro",
@@ -62,7 +62,7 @@ Authors@R:
              role = "cph"),
       person(given = "X Consortium",
              role = "cph"))
-Description: A fast row by row data processing tool. You can write data processing code in 'Sailr' scripting language which is specially intended for data manipulation. The package uses 'libsailr' (C/C++ library) for its 'Sailr' code parsing and its execution.
+Description: A row by row data processing tool. You can write data processing code in 'Sailr' scripting language which is specially intended for data manipulation. The package uses 'libsailr' (C/C++ library) for its 'Sailr' code parsing and its execution.
 Encoding: UTF-8
 License: GPL (>= 3)
 Biarch: true
@@ -71,9 +71,9 @@ Suggests: RUnit
 LinkingTo: Rcpp
 SystemRequirements: GNU make, C++11
 URL: https://datasailr.io
-BugReports: https://www.github.com/niceume/datasailr
+BugReports: https://github.com/niceume/datasailr
 NeedsCompilation: yes
-Packaged: 2020-07-03 06:47:24 UTC; toshihiro
+Packaged: 2020-08-25 09:59:17 UTC; toshihiro
 Author: Toshihiro Umehara [aut, cre],
   Troy Hanson [cph, ctb] (uthash),
   Howard Hinnant [cph, ctb] (date.h),
@@ -92,4 +92,4 @@ Author: Toshihiro Umehara [aut, cre],
   X Consortium [cph]
 Depends: R (>= 3.5.0)
 Repository: CRAN
-Date/Publication: 2020-07-06 12:00:12 UTC
+Date/Publication: 2020-08-26 07:10:08 UTC

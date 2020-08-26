@@ -18,6 +18,19 @@ sail = function( df , code , fullData = TRUE , rowname = "_rowname_" , stringsAs
 			# rowname needs not be added as a new column
 		}
 	}
+	# Add row number column for internal use
+	colname_n = "_n_"
+	if( colname_n %in% colnames(df) ){
+		cat("NOTE: column '_n_' is replaced with row number for internal use, and will be deleted when execution is finished.\n")
+	}
+	df[,colname_n] = seq(1, nrow(df))
+
+	# Add _discard_ column for internal use
+	colname_discard = "_discard_"
+	if( colname_discard %in% colnames(df) ){
+		cat("NOTE: column '_discard_' is replaced with 0/1 for internal use, and will be deleted when execution is finished.\n")
+	}
+	df[,colname_discard] = as.integer( rep(0, nrow(df)))
 
 	# If some columns have the same name, left most columns are used
 	ori_colnames = colnames(df)
@@ -31,10 +44,18 @@ sail = function( df , code , fullData = TRUE , rowname = "_rowname_" , stringsAs
 		min(which(matched_positions==TRUE ))
 	}, USE.NAMES = TRUE )
 
-
 	df_wo_duplicated_colnames = df[ positions_used_for_each_colname ]
 
 	result = .data_sailr_cpp_execute( code, df_wo_duplicated_colnames)
+
+	if( ("DataSailr_NewOrder" %in% names(attributes(result))) && attr(result, "DataSailr_NewOrder") == TRUE ){
+		if(fullData == TRUE){
+			order_vec = attr(result, "DataSailr_NewOrderVector")
+			df = df[order_vec,]
+		}
+		attr(result, "DataSailr_NewOrder") = NULL
+		attr(result, "DataSailr_NewOrderVector") = NULL
+	}
 
 	if(stringsAsFactors == TRUE ){
 		result_df = data.frame( lapply(result, function(x) if (is.factor(x)) as.character(x) else {x} ), stringsAsFactors = TRUE )  # Deal strings as factors
@@ -56,7 +77,7 @@ sail = function( df , code , fullData = TRUE , rowname = "_rowname_" , stringsAs
 			df[pos_to_update] <<- result_df[colname_for_update]
 		})
 		# add new columns
-		result_df = cbind(df , result_df[cols_for_addition])
+		result_df = cbind(df[, -which(names(df) %in% c("_n_", "_discard_"))] , result_df[cols_for_addition])
 	}
 
 	return(result_df)

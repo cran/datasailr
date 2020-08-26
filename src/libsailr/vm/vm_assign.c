@@ -1,12 +1,12 @@
 #include <R_ext/Print.h>
 #include <string.h>
 #include <stdio.h>
-#include "common_string.h"
+#include "string/common_string.h"
 #include "vm_stack.h"
 #include "vm_assign.h"
 #include "vm_item_pp2val.h"
 #include "ptr_table.h"
-#include "simple_re.h"
+#include "simple_re/simple_re.h"
 #include "helper.h"
 #include "vm_error.h"
 
@@ -130,15 +130,20 @@ vm_stack_store_val(vm_stack* vmstack)
 		// Unknown but defined variable as PTR_STR
 		}else if(left_record->type == PTR_STR){
 			if(rvalue->type == PP_STR){
-				ptr_record_free_gc_required_memory( left_record );
 				if( vm_stack_item_is_temp(rvalue) ){ // If rvalue is temporary, use the object.
+					ptr_record_free_gc_required_memory( left_record );
 					if( vm_stack_assign_temp_str_to_record(left_record, rvalue) != 1){
 						vm_error_raise(vmstack);
 					}
 				}else{  // If rvalue is not tempoary, create a new string and manage it
-					if( vm_stack_assign_copy_str_to_record(left_record, rvalue) != 1 ){
-						vm_error_raise(vmstack);
-					} 
+					if(rvalue->p_record == lvalue->p_record){
+					// Assign to oneself (e.g.) cyl = cyl
+					}else{
+						ptr_record_free_gc_required_memory( left_record );
+						if( vm_stack_assign_copy_str_to_record(left_record, rvalue) != 1 ){
+							vm_error_raise(vmstack);
+						}
+					}
 				}
 			}else {
 				Rprintf("ERROR: Object other than PP_STR is trying to be assigned to PTR_STR.\n");
@@ -196,15 +201,20 @@ vm_stack_store_val(vm_stack* vmstack)
 			vm_error_raise(vmstack);
 		}else{
 			if(rvalue->type == PP_STR){
-				ptr_record_free_gc_required_memory( left_record );
 				if( vm_stack_item_is_temp(rvalue) ){ // If rvalue is temporary, use the object.
+					ptr_record_free_gc_required_memory( left_record );
 					if( vm_stack_assign_temp_str_to_record(left_record, rvalue) != 1){
 						vm_error_raise(vmstack);
 					}
-				}else{  // If rvalue is not tempoary, create a new string and manage it 
-					if( vm_stack_assign_copy_str_to_record(left_record, rvalue) != 1){
-						vm_error_raise(vmstack);
-					}				
+				}else{  // If rvalue is not tempoary, create a new string and manage it
+					if(rvalue->p_record == lvalue->p_record){
+					// Assign to oneself (e.g.) cyl = cyl
+					}else{
+						ptr_record_free_gc_required_memory( left_record );
+						if( vm_stack_assign_copy_str_to_record(left_record, rvalue) != 1){
+							vm_error_raise(vmstack);
+						}
+					}
 				}
 			}else {
 				Rprintf("ERROR: Object other than PP_STR is trying to be assigned to PTR_STR.\n");
