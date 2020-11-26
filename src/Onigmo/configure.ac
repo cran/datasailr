@@ -5,6 +5,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_HEADER(config.h)
+AM_MAINTAINER_MODE([enable])
 
 
 dnl default value for RUBYDIR

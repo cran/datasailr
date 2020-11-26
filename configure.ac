@@ -1,7 +1,7 @@
 # autoconf setting 
 
 AC_PREREQ([2.69])
-AC_INIT([datasailr], 0.8.6, toshi@niceume.com)
+AC_INIT([datasailr], 0.8.7, toshi@niceume.com)
 AC_CONFIG_SRCDIR([src/Makevars.in])
 
 # Check R_HOME
@@ -62,6 +62,26 @@ MAKE=`"${R_HOME}/bin/R" CMD config MAKE`
 
 # compile Attributes for rcpp
 sh ./exec/compileAttr.sh
+
+# enable/disable debug option for libsailr and datasailr
+
+AC_ARG_ENABLE([libsailr-debug],
+    AS_HELP_STRING([--enable-libsailr-debug], [Enable feature libsailr debug]),
+    [
+      add_libsailr_debug="-DDEBUG "
+    ],
+    [
+      add_libsailr_debug=""
+    ])
+
+AC_ARG_ENABLE([datasailr-debug],
+    AS_HELP_STRING([--enable-datasailr-debug], [Enable feature datasailr debug]),
+    [
+      add_datasailr_debug="-DDEBUG "
+    ],
+    [
+      add_datasailr_debug=""
+    ])
 
 # set default values
 
@@ -135,7 +155,7 @@ AS_IF( [test "$which_onigmo" = "USER"],
   fi
   if test -f "${current_path}/src/Onigmo/configure" ; then
 	eval "mkdir -p ${current_path}/src/Onigmo/build"
-    eval 'cd ${current_path}/src/Onigmo/; ./configure --prefix=${current_path}/src/Onigmo/build CC="${CC}" CFLAGS="${CPICFLAGS} ${CFLAGS} ${CPPFLAGS} -DUNALIGNED_WORD_ACCESS=0 " CXX="${CXX}" AR="${AR}" ARLIB="${AR}" ARDLL="${CC}" RANLIB="${RANLIB}" ; cd  ${current_path};'
+    eval 'cd ${current_path}/src/Onigmo/; ./configure --disable-maintainer-mode --prefix=${current_path}/src/Onigmo/build CC="${CC}" CFLAGS="${CPICFLAGS} ${CFLAGS} ${CPPFLAGS} -DUNALIGNED_WORD_ACCESS=0 " CXX="${CXX}" AR="${AR}" ARLIB="${AR}" ARDLL="${CC}" RANLIB="${RANLIB}" ; cd  ${current_path};'
     echo "${current_path}/src/Onigmo/configure is successfully executed."
     case "${CFLAGS}" in
     *flto*)
@@ -179,6 +199,9 @@ AC_COMPILE_IFELSE(
 AC_LANG_POP([C++])
 
 # Export the following shell variables as substitute variales.
+AC_SUBST([add_libsailr_debug])
+AC_SUBST([add_datasailr_debug])
+
 AC_SUBST([add_onigmo_include_path])
 AC_SUBST([add_onigmo_lib_path])
 AC_SUBST([add_r_include_path])
