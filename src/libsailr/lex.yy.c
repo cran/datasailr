@@ -629,8 +629,12 @@ lex_return(YYLTYPE* loc, char* txt, parser_state *p, yyscan_t scanner, int c)
 
 /* Prevent implicit declaration of fileno() warning*/
 // (ref) https://stackoverflow.com/questions/46213840/get-rid-of-warning-implicit-declaration-of-function-fileno-in-flex
-int fileno(FILE *stream);
-#line 633 "lex.yy.c"
+#ifdef __FreeBSD__
+#else
+int fileno(FILE *);
+#endif
+
+#line 637 "lex.yy.c"
 /* IF YOU CANNOT LINKs FUNCTIONS WHEN CREATING REENTRANT PARSER, MAKE SURE CORRESPONDING OPTIONS ARE ENEABLED. */
 /* 1-2. Options to be enabled in code */
 /* Generated yylex()'s function prototype. */
@@ -640,10 +644,10 @@ int fileno(FILE *stream);
 /* %option bison-bridge => global variable, yylval, becomes YYSTYPE* lval in arguemnt of yylex(). */
 /* %option reentrant =>  yylex() is expected to have yyscan_t scanner in its arguments", and functions take one additional argument, scanner_t. */
 /* https://www.cs.virginia.edu/~cr4bd/flex-manual/Extra-Reentrant-Argument.html#Extra-Reentrant-Argument */
-#line 68 "lex.l"
+#line 72 "lex.l"
 /* By putting appropriate declaration here, compiile time conflicts are resolved. The parameter names can be used in rule section as they are expanded in yylex().*/
 #define YY_DECL int yylex(YYSTYPE* yylval_param, YYLTYPE* yylloc_param, parser_state* p, yyscan_t yyscanner )
-#line 646 "lex.yy.c"
+#line 650 "lex.yy.c"
 /* Track line number */
 /* Usually you do not need yywarp() function. */
 /* Enable (start) state stack. */
@@ -652,7 +656,7 @@ int fileno(FILE *stream);
 /* 2. Macros that are expanded in rules */
 /* 3. (Start) states that can become active when BEGIN <state> is called in actions, but I use yy_push_state(int) and yy_pop_state(). BEGIN does not seem to work with state stack. */
 
-#line 655 "lex.yy.c"
+#line 659 "lex.yy.c"
 
 #define INITIAL 0
 #define COMM 1
@@ -939,10 +943,10 @@ YY_DECL
 		}
 
 	{
-#line 97 "lex.l"
+#line 101 "lex.l"
 
 
-#line 100 "lex.l"
+#line 104 "lex.l"
 	/***************/
 	/* Rules            */
 	/*                  */
@@ -956,7 +960,7 @@ YY_DECL
 	/* **************** */
 
 	/*  For comments */
-#line 959 "lex.yy.c"
+#line 963 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1028,12 +1032,12 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 113 "lex.l"
+#line 117 "lex.l"
 { yy_push_state(COMM, yyscanner) ; };
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 115 "lex.l"
+#line 119 "lex.l"
 { 
 						yy_pop_state(yyscanner) ;
 						};
@@ -1041,13 +1045,13 @@ YY_RULE_SETUP
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 119 "lex.l"
+#line 123 "lex.l"
 {};
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 121 "lex.l"
+#line 125 "lex.l"
 {
 						/* Not containing stars */
 						};
@@ -1059,19 +1063,19 @@ YY_LINENO_REWIND_TO(yy_bp + 1);
 yyg->yy_c_buf_p = yy_cp = yy_bp + 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 125 "lex.l"
+#line 129 "lex.l"
 {
 						/* Words not starting with star and tailed with slash. */
 						};
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 129 "lex.l"
+#line 133 "lex.l"
 {};
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 131 "lex.l"
+#line 135 "lex.l"
 { 
 							/* printf("INITIAL:%d, COMM:%d, COMMONE:%d, IFSTATE:%d, ELSESTATE:%d\n", INITIAL, COMM, COMMONE, IFSTATE, ELSESTATE); */
 							yy_push_state(COMMONE, yyscanner);
@@ -1082,7 +1086,7 @@ YY_RULE_SETUP
 case 8:
 /* rule 8 can match eol */
 YY_RULE_SETUP
-#line 137 "lex.l"
+#line 141 "lex.l"
 { 
 							yy_pop_state(yyscanner); 
 							/* printf("LEX: COMMONE finished, start => %d \n", YY_START); */
@@ -1090,13 +1094,13 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 141 "lex.l"
+#line 145 "lex.l"
 {  };
 	YY_BREAK
 /* Keywords for DATA Step */
 case 10:
 YY_RULE_SETUP
-#line 145 "lex.l"
+#line 149 "lex.l"
 {		
 				if( YY_START == ELSESTATE){
 					yy_pop_state(yyscanner);
@@ -1108,7 +1112,7 @@ YY_RULE_SETUP
 case 11:
 /* rule 11 can match eol */
 YY_RULE_SETUP
-#line 152 "lex.l"
+#line 156 "lex.l"
 {
 				yy_push_state(ELSESTATE, yyscanner);
 				/* printf("ELSE STATE! %d\n", YY_START); */
@@ -1117,193 +1121,193 @@ YY_RULE_SETUP
 /* Ignore \n once. */
 case 12:
 YY_RULE_SETUP
-#line 157 "lex.l"
+#line 161 "lex.l"
 {yy_pop_state(yyscanner); /* printf("POP STATE! %d\n", YY_START);*/ LEX_RETURN('{') ;  };
 	YY_BREAK
 case 13:
 /* rule 13 can match eol */
 YY_RULE_SETUP
-#line 158 "lex.l"
+#line 162 "lex.l"
 {yy_pop_state(yyscanner); /* printf("POP STATE! %d\n", YY_START);*/ LEX_RETURN('{') ; };
 	YY_BREAK
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 159 "lex.l"
+#line 163 "lex.l"
 {yy_pop_state(yyscanner); /* printf("POP STATE! %d\n", YY_START);*/ LEX_RETURN('{') ;};
 	YY_BREAK
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
-#line 160 "lex.l"
+#line 164 "lex.l"
 {yy_pop_state(yyscanner); /* printf("POP STATE! %d\n", YY_START);*/ };
 	YY_BREAK
 /* Ignore \n once. */
 case 16:
 YY_RULE_SETUP
-#line 162 "lex.l"
+#line 166 "lex.l"
 {yy_pop_state(yyscanner); /* printf("POP STATE! %d\n", YY_START);*/ LEX_RETURN('{') ; };
 	YY_BREAK
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 163 "lex.l"
+#line 167 "lex.l"
 {yy_pop_state(yyscanner); /* printf("POP STATE! %d\n", YY_START);*/ LEX_RETURN('{') ; };
 	YY_BREAK
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 164 "lex.l"
+#line 168 "lex.l"
 {yy_pop_state(yyscanner); /* printf("POP STATE! %d\n", YY_START);*/ LEX_RETURN('{') ; };
 	YY_BREAK
 case 19:
 /* rule 19 can match eol */
 YY_RULE_SETUP
-#line 165 "lex.l"
+#line 169 "lex.l"
 {yy_pop_state(yyscanner); /* printf("POP STATE! %d\n", YY_START);*/ };
 	YY_BREAK
 /* Ignore complete space lines */
 case 20:
 /* rule 20 can match eol */
 YY_RULE_SETUP
-#line 168 "lex.l"
+#line 172 "lex.l"
 {};
 	YY_BREAK
 /* For operators */
 case 21:
 YY_RULE_SETUP
-#line 171 "lex.l"
+#line 175 "lex.l"
 LEX_RETURN( OP_PLUS );
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 172 "lex.l"
+#line 176 "lex.l"
 LEX_RETURN( OP_SUB );
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 173 "lex.l"
+#line 177 "lex.l"
 LEX_RETURN( OP_MULT );
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 174 "lex.l"
+#line 178 "lex.l"
 LEX_RETURN( OP_DIV );
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 175 "lex.l"
+#line 179 "lex.l"
 LEX_RETURN( OP_MOD );
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 176 "lex.l"
+#line 180 "lex.l"
 { LEX_RETURN( FACTOR );}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 177 "lex.l"
+#line 181 "lex.l"
 LEX_RETURN( OP_POWER );
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 178 "lex.l"
+#line 182 "lex.l"
 LEX_RETURN( OP_POWER );
 	YY_BREAK
 /* For comparison */
 case 29:
 YY_RULE_SETUP
-#line 181 "lex.l"
+#line 185 "lex.l"
 LEX_RETURN( OP_EQ );
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 182 "lex.l"
+#line 186 "lex.l"
 LEX_RETURN( OP_NEQ );
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 183 "lex.l"
+#line 187 "lex.l"
 LEX_RETURN( OP_GT );
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 184 "lex.l"
+#line 188 "lex.l"
 LEX_RETURN( OP_LT );
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 185 "lex.l"
+#line 189 "lex.l"
 LEX_RETURN( OP_GE );
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 186 "lex.l"
+#line 190 "lex.l"
 LEX_RETURN( OP_LE );
 	YY_BREAK
 /* For logical operators */
 case 35:
 YY_RULE_SETUP
-#line 189 "lex.l"
+#line 193 "lex.l"
 LEX_RETURN( AND );
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 190 "lex.l"
+#line 194 "lex.l"
 LEX_RETURN( OR );
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 191 "lex.l"
+#line 195 "lex.l"
 LEX_RETURN( AND );
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 192 "lex.l"
+#line 196 "lex.l"
 LEX_RETURN( OR );
 	YY_BREAK
 /* For assignment */
 case 39:
 YY_RULE_SETUP
-#line 195 "lex.l"
+#line 199 "lex.l"
 LEX_RETURN( ASSIGN );
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 196 "lex.l"
+#line 200 "lex.l"
 LEX_RETURN( ASSIGN );
 	YY_BREAK
 /* For regular expression matching */
 case 41:
 YY_RULE_SETUP
-#line 199 "lex.l"
+#line 203 "lex.l"
 LEX_RETURN( REXP_MATCH );
 	YY_BREAK
 /* For Parentheses and Blocks */
 case 42:
 YY_RULE_SETUP
-#line 202 "lex.l"
+#line 206 "lex.l"
 LEX_RETURN( '(' );
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 203 "lex.l"
+#line 207 "lex.l"
 LEX_RETURN( ')' );
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 204 "lex.l"
+#line 208 "lex.l"
 LEX_RETURN( '{' );
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 205 "lex.l"
+#line 209 "lex.l"
 LEX_RETURN( '}' );
 	YY_BREAK
 /* For missing numbers */
 case 46:
 YY_RULE_SETUP
-#line 208 "lex.l"
+#line 212 "lex.l"
 {
 	yylval_param->nd = new_node_nan_double( );
 	LEX_RETURN( NA_NUM );
@@ -1312,24 +1316,24 @@ YY_RULE_SETUP
 /* For Macro (Plan) */
 case 47:
 YY_RULE_SETUP
-#line 214 "lex.l"
+#line 218 "lex.l"
 LEX_RETURN( PLCUR );
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 215 "lex.l"
+#line 219 "lex.l"
 LEX_RETURN( PRCUR );
 	YY_BREAK
 /* For list identities (Plan) */
 case 49:
 YY_RULE_SETUP
-#line 218 "lex.l"
+#line 222 "lex.l"
 LEX_RETURN( COMMA );
 	YY_BREAK
 /* Identifier such as variable names, and function names */
 case 50:
 YY_RULE_SETUP
-#line 221 "lex.l"
+#line 225 "lex.l"
 {
 	size_t ident_len = strlen(yytext);
 	char* new_str = (char*) malloc(sizeof(char) * (ident_len + 1));
@@ -1342,7 +1346,7 @@ YY_RULE_SETUP
 /* Number */
 case 51:
 YY_RULE_SETUP
-#line 231 "lex.l"
+#line 235 "lex.l"
 {
 	yylval_param->nd = new_node_int(yytext);
 	LEX_RETURN( LIT_NUM );
@@ -1350,7 +1354,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 236 "lex.l"
+#line 240 "lex.l"
 {
 	yylval_param->nd = new_node_double(yytext);
 	LEX_RETURN( LIT_NUM );
@@ -1365,7 +1369,7 @@ YY_RULE_SETUP
 case 53:
 /* rule 53 can match eol */
 YY_RULE_SETUP
-#line 249 "lex.l"
+#line 253 "lex.l"
 {
 	yylval_param->str = string_new_unescaped_and_delete_ori( string_new_with_len((yytext + 1), yyleng - 2), p->rexp_encoding);
 	// printf("LEXER: LIT_STR %s \n", yytext);
@@ -1375,7 +1379,7 @@ YY_RULE_SETUP
 case 54:
 /* rule 54 can match eol */
 YY_RULE_SETUP
-#line 255 "lex.l"
+#line 259 "lex.l"
 {
 	yylval_param->str = string_new_with_len((yytext+1), yyleng - 2);
 	LEX_RETURN( LIT_STR );
@@ -1386,7 +1390,7 @@ YY_RULE_SETUP
 case 55:
 /* rule 55 can match eol */
 YY_RULE_SETUP
-#line 262 "lex.l"
+#line 266 "lex.l"
 {
 	yylval_param->str = string_new_with_len((yytext+3), yyleng - 4);
 	LEX_RETURN( LIT_REXP ); 
@@ -1397,7 +1401,7 @@ YY_RULE_SETUP
 case 56:
 /* rule 56 can match eol */
 YY_RULE_SETUP
-#line 269 "lex.l"
+#line 273 "lex.l"
 {
 	LEX_RETURN( TERMIN );
 };
@@ -1405,13 +1409,13 @@ YY_RULE_SETUP
 /* Spaces */
 case 57:
 YY_RULE_SETUP
-#line 274 "lex.l"
+#line 278 "lex.l"
 { };
 	YY_BREAK
 /* Other characters */
 case 58:
 YY_RULE_SETUP
-#line 277 "lex.l"
+#line 281 "lex.l"
 {
 	char c = yytext[0];
 	lexerror(p, yylloc_param, c);
@@ -1419,10 +1423,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 282 "lex.l"
+#line 286 "lex.l"
 ECHO;
 	YY_BREAK
-#line 1425 "lex.yy.c"
+#line 1429 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMM):
 case YY_STATE_EOF(COMMONE):
@@ -2661,7 +2665,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 282 "lex.l"
+#line 286 "lex.l"
 
 /* ************* */
 /* User Code     */

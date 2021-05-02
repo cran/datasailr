@@ -1,8 +1,8 @@
 Package: datasailr
 Type: Package
 Title: Row by Row Data Processing Tool, Using 'DataSailr' Script
-Version: 0.8.7
-Date: 2020-11-26
+Version: 0.8.8
+Date: 2021-05-02
 Maintainer: Toshihiro Umehara <toshi@niceume.com>
 Authors@R: 
     c(person(given = "Toshihiro",
@@ -73,7 +73,7 @@ SystemRequirements: GNU make, C++11
 URL: https://datasailr.io
 BugReports: https://github.com/niceume/datasailr
 NeedsCompilation: yes
-Packaged: 2020-11-26 11:46:47 UTC; toshihiro
+Packaged: 2021-05-02 12:49:48 UTC; toshihiro
 Author: Toshihiro Umehara [aut, cre],
   Troy Hanson [cph, ctb] (uthash),
   Howard Hinnant [cph, ctb] (date.h),
@@ -92,4 +92,4 @@ Author: Toshihiro Umehara [aut, cre],
   X Consortium [cph]
 Depends: R (>= 3.5.0)
 Repository: CRAN
-Date/Publication: 2020-11-26 12:40:02 UTC
+Date/Publication: 2021-05-02 13:50:07 UTC
