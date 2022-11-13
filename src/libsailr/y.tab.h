@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -30,6 +31,10 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with YY_ or yy_.  They are
+   private implementation details that can be changed or removed.  */
+
 #ifndef YY_YY_Y_TAB_H_INCLUDED
 # define YY_YY_Y_TAB_H_INCLUDED
 /* Debug traces.  */
@@ -40,43 +45,52 @@
 extern int yydebug;
 #endif
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    LIT_NUM = 258,
-    NA_NUM = 259,
-    LIT_STR = 260,
-    LIT_REXP = 261,
-    IDENT = 262,
-    KEY_IF = 263,
-    KEY_ELSE = 264,
-    ASSIGN = 265,
-    TERMIN = 266,
-    PLCUR = 267,
-    PRCUR = 268,
-    COMMA = 269,
-    OR = 270,
-    AND = 271,
-    OP_EQ = 272,
-    OP_NEQ = 273,
-    REXP_MATCH = 274,
-    OP_LT = 275,
-    OP_LE = 276,
-    OP_GT = 277,
-    OP_GE = 278,
-    OP_PLUS = 279,
-    OP_SUB = 280,
-    OP_MULT = 281,
-    OP_DIV = 282,
-    OP_MOD = 283,
-    OP_POWER = 284,
-    FACTOR = 285,
-    UMINUS = 286
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    LIT_NUM = 258,                 /* LIT_NUM  */
+    NA_NUM = 259,                  /* NA_NUM  */
+    LIT_STR = 260,                 /* LIT_STR  */
+    LIT_REXP = 261,                /* LIT_REXP  */
+    IDENT = 262,                   /* IDENT  */
+    KEY_IF = 263,                  /* KEY_IF  */
+    KEY_ELSE = 264,                /* KEY_ELSE  */
+    ASSIGN = 265,                  /* ASSIGN  */
+    TERMIN = 266,                  /* TERMIN  */
+    PLCUR = 267,                   /* PLCUR  */
+    PRCUR = 268,                   /* PRCUR  */
+    COMMA = 269,                   /* COMMA  */
+    OR = 270,                      /* OR  */
+    AND = 271,                     /* AND  */
+    OP_EQ = 272,                   /* OP_EQ  */
+    OP_NEQ = 273,                  /* OP_NEQ  */
+    REXP_MATCH = 274,              /* REXP_MATCH  */
+    OP_LT = 275,                   /* OP_LT  */
+    OP_LE = 276,                   /* OP_LE  */
+    OP_GT = 277,                   /* OP_GT  */
+    OP_GE = 278,                   /* OP_GE  */
+    OP_PLUS = 279,                 /* OP_PLUS  */
+    OP_SUB = 280,                  /* OP_SUB  */
+    OP_MULT = 281,                 /* OP_MULT  */
+    OP_DIV = 282,                  /* OP_DIV  */
+    OP_MOD = 283,                  /* OP_MOD  */
+    OP_POWER = 284,                /* OP_POWER  */
+    FACTOR = 285,                  /* FACTOR  */
+    UMINUS = 286                   /* UMINUS  */
   };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
-/* Tokens.  */
+/* Token kinds.  */
+#define YYEMPTY -2
+#define YYEOF 0
+#define YYerror 256
+#define YYUNDEF 257
 #define LIT_NUM 258
 #define NA_NUM 259
 #define LIT_STR 260
@@ -109,18 +123,17 @@ extern int yydebug;
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-
 union YYSTYPE
 {
-#line 13 "parse.y" /* yacc.c:1909  */
+#line 13 "parse.y"
 
   TreeNode* nd;
   string_object* str;
   char* id;
 
-#line 122 "y.tab.h" /* yacc.c:1909  */
-};
+#line 135 "y.tab.h"
 
+};
 typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -142,6 +155,8 @@ struct YYLTYPE
 
 
 
+
 int yyparse (parser_state *p, void* scanner);
+
 
 #endif /* !YY_YY_Y_TAB_H_INCLUDED  */

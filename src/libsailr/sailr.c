@@ -43,7 +43,7 @@ int yylex_destroy(void*);
 
 
 ptr_table_object*
-sailr_ptr_table_init()
+sailr_ptr_table_init( void )
 {
 	return (ptr_table_object*) ptr_table_init();
 }
@@ -110,7 +110,7 @@ sailr_gen_code( parser_state_object* ps , ptr_table_object* table)
 }
 
 vm_stack_object*
-sailr_vm_stack_init()
+sailr_vm_stack_init( void )
 {
 	return (vm_stack_object*) vm_stack_init();
 }

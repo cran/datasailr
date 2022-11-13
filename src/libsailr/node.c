@@ -103,7 +103,7 @@ new_node_double( char* num )
 }
 
 TreeNode*
-new_node_nan_double ( )
+new_node_nan_double ( void )
 {
   NEW_NODE_HEADER
   TreeNode* nd = (TreeNode*)malloc(sizeof(TreeNode));
@@ -225,7 +225,7 @@ TreeNode* new_node_if(TreeNode* cond, TreeNode* then_node, TreeNode* else_node)
   return nd;
 }
 
-TreeNode* new_node_null()
+TreeNode* new_node_null( void )
 {
   NEW_NODE_HEADER
   TreeNode* nd = (TreeNode*)malloc(sizeof(TreeNode));

@@ -22,7 +22,7 @@ display_item_type(ItemType type)
 
 // private
 vm_stack*
-vm_stack_init()
+vm_stack_init( void )
 {
 	vm_stack* stack = (vm_stack*)malloc(sizeof(vm_stack));
 	stack->sp = 0;
@@ -41,7 +41,7 @@ vm_stack_init()
 
 #ifdef DEBUG
 	Rprintf("Initializing vm_stack: Address to Pointer to last_rexp field is %p \n", &(item->p_vm_stack_info->last_rexp));
-	Rprintf("Initializing vm_stack: Address to last_rexp is %p \n", item->p_vm_stack_info->last_rexp);
+//	printf("Initializing vm_stack: Address to last_rexp is %p \n", item->p_vm_stack_info->last_rexp);
 #endif
 
 	return stack;
